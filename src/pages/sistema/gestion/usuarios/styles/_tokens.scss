@@ -1,0 +1,22 @@
+$usuarios-gap-lg: 24px;
+$usuarios-gap-md: 16px;
+$usuarios-gap-sm: 12px;
+$usuarios-gap-xs: 8px;
+
+$usuarios-radius-md: 8px;
+$usuarios-radius-lg: 10px;
+
+$usuarios-padding-mobile: 16px;
+$usuarios-padding-desktop-x: 24px;
+$usuarios-padding-desktop-bottom: 24px;
+
+$usuarios-breakpoint-sm: 600px;
+$usuarios-breakpoint-xl: 1536px;
+
+$usuarios-card-skeleton-height: 208px;
+
+@mixin usuarios-up($breakpoint) {
+  @media (min-width: $breakpoint) {
+    @content;
+  }
+}

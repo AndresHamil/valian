@@ -1,8 +1,12 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import { dynamicRoutes } from "./routes";
 import ThemeProvider from "./components/ThemeProvider";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+const themedRoutes = dynamicRoutes.filter((route) => route.theme);
+const publicRoutes = dynamicRoutes.filter((route) => !route.theme);
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -11,19 +15,25 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-        <Routes>
-          {dynamicRoutes.map(route => (
-            <Route
-              key={route.path}
-              path={route.path}
-              element={
-                route.theme
-                  ? <ThemeProvider>{route.element}</ThemeProvider>
-                  : route.element
-              }
-            />
+      <Routes>
+        <Route
+          element={
+            <ProtectedRoute>
+              <ThemeProvider>
+                <Outlet />
+              </ThemeProvider>
+            </ProtectedRoute>
+          }
+        >
+          {themedRoutes.map((route) => (
+            <Route key={route.path} path={route.path} element={route.element} />
           ))}
-        </Routes>
+        </Route>
+
+        {publicRoutes.map((route) => (
+          <Route key={route.path} path={route.path} element={route.element} />
+        ))}
+      </Routes>
     </BrowserRouter>
   </React.StrictMode>
 );

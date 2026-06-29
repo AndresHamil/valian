@@ -1,0 +1,44 @@
+@use "tokens" as *;
+
+.usuarios-view {
+  &__toolbar {
+    display: flex;
+    gap: $usuarios-gap-sm;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  &__toggle {
+    border: 1px solid currentColor;
+    border-radius: $usuarios-radius-md;
+    overflow: hidden;
+    color: inherit;
+    opacity: 0.88;
+
+    .MuiToggleButton-root {
+      padding: 6px 12px;
+      border: 0;
+      color: inherit;
+    }
+  }
+
+  &__icon-button {
+    border: 1px solid var(--mui-palette-divider, rgba(0, 0, 0, 0.12));
+    background: var(--mui-palette-background-paper, #fff);
+  }
+
+  &__refresh-button {
+    border: 1px solid var(--mui-palette-divider, rgba(0, 0, 0, 0.12));
+    background: var(--mui-palette-background-paper, #fff);
+
+    .usuarios-view__refresh-icon {
+      animation: none;
+    }
+
+    &--loading {
+      .usuarios-view__refresh-icon {
+        animation: usuarios-refresh-spin 0.9s linear infinite;
+      }
+    }
+  }
+}

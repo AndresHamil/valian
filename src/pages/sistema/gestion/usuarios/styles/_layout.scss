@@ -1,0 +1,35 @@
+@use "tokens" as *;
+
+.usuarios-view {
+  display: grid;
+  gap: $usuarios-gap-lg;
+  padding: $usuarios-padding-mobile;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: $usuarios-gap-md;
+    flex-wrap: wrap;
+  }
+
+  &__table {
+    max-height: 440px;
+    border-radius: $usuarios-radius-lg;
+    overflow-x: auto;
+  }
+
+  &__pagination {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+  }
+}
+
+@include usuarios-up($usuarios-breakpoint-sm) {
+  .usuarios-view {
+    padding: $usuarios-padding-mobile $usuarios-padding-desktop-x $usuarios-padding-desktop-bottom;
+  }
+}
