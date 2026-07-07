@@ -1,12 +1,18 @@
 import { useEffect, useState } from "react";
 import type { ChangeEvent, MouseEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { getSessionToken } from "../../../../session/auth";
 
+// Endpoints
 const CONSULTAR_USUARIOS_URL = "/api/gestion/usuarios/consultarUsuarios";
 const CONSULTAR_USUARIOS_FILTROS_URL = "/api/gestion/usuarios/consultarUsuariosFiltros";
+const CONSULTAR_USUARIO_URL = "/api/gestion/usuarios/consultarUsuario";
+const EDITAR_USUARIO_URL = "/api/gestion/usuarios/editarUsuario";
+const USUARIOS_ROUTE = "/organizacion/usuarios";
 
+// Tipos de vista
 export type Column = {
   id:
     | "nombreCompleto"
@@ -34,24 +40,39 @@ export type UsuarioRow = {
   sesion: boolean;
 };
 
+type UsuarioApiItem = {
+  id: string;
+  nombre: string;
+  apellido: string;
+  usuario: string;
+  email: string;
+  telefono: string;
+  fechaRegistro: string;
+  fechaActualizacion: string;
+  estado: boolean;
+  sesion: boolean;
+};
+
 type ConsultarUsuariosResponse = {
   success: boolean;
   message: string;
   error: string | null;
-  data: Array<{
-    id: string;
-    nombre: string;
-    apellido: string;
-    usuario: string;
-    email: string;
-    telefono: string;
-    fechaRegistro: string;
-    fechaActualizacion: string;
-    estado: boolean;
-    sesion: boolean;
-  }>;
+  data: UsuarioApiItem[];
   totalCount: number;
   resultCount?: number;
+};
+
+type MutationResponse = {
+  success: boolean;
+  message: string;
+  error: string | null;
+};
+
+type ConsultarUsuarioResponse = {
+  success: boolean;
+  message: string;
+  error: string | null;
+  data: UsuarioApiItem;
 };
 
 export type UsuarioFilters = {
@@ -69,6 +90,34 @@ export type UsuarioFilters = {
 
 export type ViewMode = "table" | "cards";
 
+export type EditUsuarioForm = {
+  id: string;
+  nombre: string;
+  apellido: string | null;
+  usuario: string;
+  email: string | null;
+  telefono: string | null;
+  fechaRegistro: string;
+  fechaActualizacion: string;
+  passwordactual: string | null;
+  passworNueva: string | null;
+  estado: boolean | null;
+  sesion: boolean;
+};
+
+type EditUsuarioPayload = {
+  id: string;
+  nombre: string | null;
+  apellido: string | null;
+  email: string | null;
+  telefono: string | null;
+  passwordactual: string | null;
+  passworNueva: string | null;
+  estado: boolean | null;
+  sesion: boolean | null;
+};
+
+// Configuración de filtros y vista
 export const EMPTY_FILTERS: UsuarioFilters = {
   id: null,
   nombre: null,
@@ -101,42 +150,164 @@ export const BODY_CELL_SX = {
   boxSizing: "border-box",
 } as const;
 
+// Helpers de transformación
+function buildNombreCompleto(usuario: Pick<UsuarioApiItem, "nombre" | "apellido">) {
+  return `${usuario.nombre} ${usuario.apellido}`.trim();
+}
+
+function mapUsuarios(data: UsuarioApiItem[]): UsuarioRow[] {
+  return data.map((usuario) => ({
+    ...usuario,
+    nombreCompleto: buildNombreCompleto(usuario),
+  }));
+}
+
+function getSearchableUsuarioValues(row: UsuarioRow) {
+  return [
+    row.nombreCompleto,
+    row.usuario,
+    row.email,
+    row.telefono,
+    row.fechaRegistro,
+    row.estado ? "activo" : "inactivo",
+    row.sesion ? "abierta" : "cerrada",
+  ];
+}
+
+function buildEditUsuarioForm(usuario: UsuarioApiItem): EditUsuarioForm {
+  return {
+    id: usuario.id,
+    nombre: usuario.nombre,
+    apellido: usuario.apellido || null,
+    usuario: usuario.usuario,
+    email: usuario.email || null,
+    telefono: usuario.telefono || null,
+    fechaRegistro: usuario.fechaRegistro,
+    fechaActualizacion: usuario.fechaActualizacion,
+    passwordactual: null,
+    passworNueva: null,
+    estado: usuario.estado,
+    sesion: usuario.sesion,
+  };
+}
+
+function normalizeOptionalText(value: string | null) {
+  const normalized = value?.trim() ?? "";
+  return normalized ? normalized : null;
+}
+
+function buildEditUsuarioPayload(current: EditUsuarioForm, original: EditUsuarioForm): EditUsuarioPayload {
+  const normalizedNombre = current.nombre.trim();
+  const normalizedApellido = normalizeOptionalText(current.apellido);
+  const normalizedEmail = normalizeOptionalText(current.email);
+  const normalizedTelefono = normalizeOptionalText(current.telefono);
+  const normalizedPasswordActual = normalizeOptionalText(current.passwordactual);
+  const normalizedPasswordNueva = normalizeOptionalText(current.passworNueva);
+
+  return {
+    id: current.id,
+    nombre: normalizedNombre !== original.nombre.trim() ? normalizedNombre : null,
+    apellido: normalizedApellido !== normalizeOptionalText(original.apellido) ? normalizedApellido : null,
+    email: normalizedEmail !== normalizeOptionalText(original.email) ? normalizedEmail : null,
+    telefono: normalizedTelefono !== normalizeOptionalText(original.telefono) ? normalizedTelefono : null,
+    passwordactual: normalizedPasswordActual,
+    passworNueva: normalizedPasswordNueva,
+    estado: current.estado !== original.estado ? current.estado : null,
+    sesion: null,
+  };
+}
+
 export function useUsuariosScript() {
   const navigate = useNavigate();
+  const { id: routeUsuarioId } = useParams<{ id?: string }>();
   const permiso = false;
+  const isMobileView = useMediaQuery("(max-width:900px)");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [viewMode, setViewMode] = useState<ViewMode>("table");
+  const [viewMode, setViewMode] = useState<ViewMode>(() => (isMobileView ? "cards" : "table"));
+  const [hasManualViewModeSelection, setHasManualViewModeSelection] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<UsuarioFilters>(EMPTY_FILTERS);
   const [usuarios, setUsuarios] = useState<UsuarioRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [requestError, setRequestError] = useState("");
   const [filtersAnchorEl, setFiltersAnchorEl] = useState<null | HTMLElement>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editDialogLoading, setEditDialogLoading] = useState(false);
+  const [editDialogSubmitting, setEditDialogSubmitting] = useState(false);
+  const [editDialogError, setEditDialogError] = useState("");
+  const [editForm, setEditForm] = useState<EditUsuarioForm | null>(null);
+  const [editFormOriginal, setEditFormOriginal] = useState<EditUsuarioForm | null>(null);
 
-  const mapUsuarios = (data: ConsultarUsuariosResponse["data"]) =>
-    data.map((usuario) => ({
-      ...usuario,
-      nombreCompleto: `${usuario.nombre} ${usuario.apellido}`.trim(),
-    }));
-
+  // Redirección defensiva si la vista llegara a abrirse sin permiso.
   useEffect(() => {
     if (permiso) {
       navigate("/login");
     }
   }, [permiso, navigate]);
 
-  const consultarUsuarios = async () => {
+  const resetPagination = () => {
+    setPage(0);
+  };
+
+  const clearUsuariosWithError = (message: string) => {
+    setRequestError(message);
+    setUsuarios([]);
+  };
+
+  const startRequest = () => {
+    setLoading(true);
+    setRequestError("");
+  };
+
+  const ensureSessionToken = (options?: { stopLoadingOnFail?: boolean }) => {
     const token = getSessionToken();
 
-    if (!token) {
+    if (token) {
+      return token;
+    }
+
+    if (options?.stopLoadingOnFail) {
       setLoading(false);
-      setRequestError("No se encontro un token de sesion para consultar usuarios.");
+    }
+
+    setRequestError("No se encontro un token de sesion para consultar usuarios.");
+    return null;
+  };
+
+  const applyUsuariosPayload = (
+    payload: ConsultarUsuariosResponse,
+    fallbackMessage: string
+  ) => {
+    if (!payload.success) {
+      clearUsuariosWithError(payload.message || fallbackMessage);
+      return false;
+    }
+
+    setUsuarios(mapUsuarios(payload.data));
+    return true;
+  };
+
+  const resolveAxiosErrorMessage = (
+    error: unknown,
+    requestFallbackMessage: string,
+    connectionFallbackMessage: string
+  ) => {
+    if (axios.isAxiosError<ConsultarUsuariosResponse>(error) && error.response) {
+      return error.response.data.message || requestFallbackMessage;
+    }
+
+    return connectionFallbackMessage;
+  };
+
+  const consultarUsuarios = async () => {
+    const token = ensureSessionToken({ stopLoadingOnFail: true });
+
+    if (!token) {
       return;
     }
 
-    setLoading(true);
-    setRequestError("");
+    startRequest();
 
     try {
       const response = await axios.get<ConsultarUsuariosResponse>(
@@ -148,25 +319,18 @@ export function useUsuariosScript() {
         }
       );
 
-      const payload = response.data;
-
-      if (!payload.success) {
-        setRequestError(payload.message || "No fue posible consultar los usuarios.");
-        setUsuarios([]);
-        return;
-      }
-
-      setUsuarios(mapUsuarios(payload.data));
+      applyUsuariosPayload(
+        response.data,
+        "No fue posible consultar los usuarios."
+      );
     } catch (error) {
-      if (axios.isAxiosError<ConsultarUsuariosResponse>(error) && error.response) {
-        setRequestError(
-          error.response.data.message || "No fue posible consultar los usuarios."
-        );
-      } else {
-        setRequestError("No fue posible conectar con el servicio de usuarios.");
-      }
-
-      setUsuarios([]);
+      clearUsuariosWithError(
+        resolveAxiosErrorMessage(
+          error,
+          "No fue posible consultar los usuarios.",
+          "No fue posible conectar con el servicio de usuarios."
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -176,13 +340,94 @@ export function useUsuariosScript() {
     consultarUsuarios();
   }, []);
 
+  useEffect(() => {
+    let isActive = true;
+
+    const syncEditDialogFromRoute = async () => {
+      if (!routeUsuarioId) {
+        setEditDialogOpen(false);
+        setEditDialogLoading(false);
+        setEditDialogError("");
+        setEditForm(null);
+        setEditFormOriginal(null);
+        return;
+      }
+
+      const token = ensureSessionToken();
+
+      if (!token) {
+        return;
+      }
+
+      setEditDialogError("");
+      setEditDialogOpen(true);
+      setEditDialogLoading(true);
+      setEditForm(null);
+      setEditFormOriginal(null);
+
+      try {
+        const response = await axios.post<ConsultarUsuarioResponse>(
+          CONSULTAR_USUARIO_URL,
+          { id: routeUsuarioId },
+          {
+            headers: {
+              Authorization: token,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!isActive) {
+          return;
+        }
+
+        if (!response.data.success) {
+          setEditDialogError(response.data.message || "No fue posible consultar el usuario.");
+          return;
+        }
+
+        const hydratedForm = buildEditUsuarioForm(response.data.data);
+        setEditForm(hydratedForm);
+        setEditFormOriginal(hydratedForm);
+      } catch (error) {
+        if (!isActive) {
+          return;
+        }
+
+        if (axios.isAxiosError<ConsultarUsuarioResponse>(error) && error.response) {
+          setEditDialogError(error.response.data.message || "No fue posible consultar el usuario.");
+        } else {
+          setEditDialogError("No fue posible conectar con el servicio de consulta de usuario.");
+        }
+      } finally {
+        if (isActive) {
+          setEditDialogLoading(false);
+        }
+      }
+    };
+
+    void syncEditDialogFromRoute();
+
+    return () => {
+      isActive = false;
+    };
+  }, [routeUsuarioId]);
+
+  useEffect(() => {
+    if (hasManualViewModeSelection) {
+      return;
+    }
+
+    setViewMode(isMobileView ? "cards" : "table");
+  }, [hasManualViewModeSelection, isMobileView]);
+
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
   const handleChangeRowsPerPage = (event: ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(Number(event.target.value));
-    setPage(0);
+    resetPagination();
   };
 
   const handleFilterChange = (
@@ -193,17 +438,17 @@ export function useUsuariosScript() {
       ...current,
       [key]: value === "" ? null : value,
     }));
-    setPage(0);
+    resetPagination();
   };
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
-    setPage(0);
+    resetPagination();
   };
 
   const handleClearSearch = () => {
     setSearchTerm("");
-    setPage(0);
+    resetPagination();
   };
 
   const handleChangeViewMode = (
@@ -214,6 +459,7 @@ export function useUsuariosScript() {
       return;
     }
 
+    setHasManualViewModeSelection(true);
     setViewMode(nextViewMode);
   };
 
@@ -225,17 +471,90 @@ export function useUsuariosScript() {
     setFiltersAnchorEl(null);
   };
 
-  const handleApplyFilters = async () => {
-    const token = getSessionToken();
+  const handleOpenEditDialog = async (row: Pick<UsuarioRow, "id">) => {
+    await navigate(`${USUARIOS_ROUTE}/${row.id}`);
+  };
 
-    if (!token) {
-      setRequestError("No se encontro un token de sesion para consultar usuarios.");
+  const handleCloseEditDialog = () => {
+    if (editDialogSubmitting) {
       return;
     }
 
-    setLoading(true);
-    setRequestError("");
-    setPage(0);
+    void navigate(USUARIOS_ROUTE);
+  };
+
+  const handleEditFormChange = <K extends keyof EditUsuarioForm>(
+    key: K,
+    value: EditUsuarioForm[K]
+  ) => {
+    setEditForm((current) => {
+      if (!current) {
+        return current;
+      }
+
+      return {
+        ...current,
+        [key]: value,
+      };
+    });
+  };
+
+  const handleSubmitEditDialog = async () => {
+    if (!editForm || !editFormOriginal) {
+      return;
+    }
+
+    const token = ensureSessionToken();
+
+    if (!token) {
+      return;
+    }
+
+    if (!editForm.nombre.trim()) {
+      setEditDialogError("El nombre es obligatorio.");
+      return;
+    }
+
+    setEditDialogSubmitting(true);
+    setEditDialogError("");
+
+    const payload = buildEditUsuarioPayload(editForm, editFormOriginal);
+
+    try {
+      const response = await axios.put<MutationResponse>(EDITAR_USUARIO_URL, payload, {
+        headers: {
+          Authorization: token,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.data.success) {
+        setEditDialogError(response.data.message || "No fue posible editar el usuario.");
+        return;
+      }
+
+      void navigate(USUARIOS_ROUTE);
+      await consultarUsuarios();
+    } catch (error) {
+      if (axios.isAxiosError<MutationResponse>(error) && error.response) {
+        setEditDialogError(error.response.data.message || "No fue posible editar el usuario.");
+      } else {
+        setEditDialogError("No fue posible conectar con el servicio de edicion de usuarios.");
+      }
+    } finally {
+      setEditDialogSubmitting(false);
+    }
+  };
+
+  const handleApplyFilters = async () => {
+    const token = ensureSessionToken();
+
+    if (!token) {
+      return;
+    }
+
+    startRequest();
+    resetPagination();
 
     try {
       const response = await axios.post<ConsultarUsuariosResponse>(
@@ -249,26 +568,22 @@ export function useUsuariosScript() {
         }
       );
 
-      const payload = response.data;
+      const requestSucceeded = applyUsuariosPayload(
+        response.data,
+        "No fue posible filtrar los usuarios."
+      );
 
-      if (!payload.success) {
-        setRequestError(payload.message || "No fue posible filtrar los usuarios.");
-        setUsuarios([]);
-        return;
+      if (requestSucceeded) {
+        handleCloseFilters();
       }
-
-      setUsuarios(mapUsuarios(payload.data));
-      handleCloseFilters();
     } catch (error) {
-      if (axios.isAxiosError<ConsultarUsuariosResponse>(error) && error.response) {
-        setRequestError(
-          error.response.data.message || "No fue posible filtrar los usuarios."
-        );
-      } else {
-        setRequestError("No fue posible conectar con el servicio de filtros de usuarios.");
-      }
-
-      setUsuarios([]);
+      clearUsuariosWithError(
+        resolveAxiosErrorMessage(
+          error,
+          "No fue posible filtrar los usuarios.",
+          "No fue posible conectar con el servicio de filtros de usuarios."
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -276,26 +591,21 @@ export function useUsuariosScript() {
 
   const handleClearFilters = async () => {
     setFilters(EMPTY_FILTERS);
-    setPage(0);
+    resetPagination();
     handleCloseFilters();
     await consultarUsuarios();
   };
 
+  // Derivados de vista
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const visibleRows = usuarios.filter((row) => {
     if (!normalizedSearch) {
       return true;
     }
 
-    return [
-      row.nombreCompleto,
-      row.usuario,
-      row.email,
-      row.telefono,
-      row.fechaRegistro,
-      row.estado ? "activo" : "inactivo",
-      row.sesion ? "abierta" : "cerrada",
-    ].some((value) => value.toLowerCase().includes(normalizedSearch));
+    return getSearchableUsuarioValues(row).some((value) =>
+      value.toLowerCase().includes(normalizedSearch)
+    );
   });
 
   const activeFiltersCount = Object.values(filters).filter(
@@ -317,6 +627,12 @@ export function useUsuariosScript() {
     loading,
     requestError,
     filtersAnchorEl,
+    editDialogOpen,
+    editDialogLoading,
+    editDialogSubmitting,
+    editDialogError,
+    editForm,
+    editFormOriginal,
     activeFiltersCount,
     paginatedRows,
     visibleRows,
@@ -329,6 +645,10 @@ export function useUsuariosScript() {
     handleChangeViewMode,
     handleOpenFilters,
     handleCloseFilters,
+    handleOpenEditDialog,
+    handleCloseEditDialog,
+    handleEditFormChange,
+    handleSubmitEditDialog,
     handleApplyFilters,
     handleClearFilters,
   };

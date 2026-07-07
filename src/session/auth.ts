@@ -1,22 +1,168 @@
+export type SessionProcess = {
+  procesoId: string;
+  nombre: string;
+  codigo: string;
+  icono: string | null;
+  url: string;
+  path: string;
+  tipoPermiso: number;
+  permisos: string[];
+};
+
+export type SessionModule = {
+  moduloId: string;
+  modulo: string;
+  codigo: string;
+  tipo: string;
+  icono: string | null;
+  procesos: SessionProcess[];
+};
+
+export type SessionAccesses = {
+  gestion: SessionModule[];
+  sistemas: SessionModule[];
+  otros: SessionModule[];
+};
+
+export type SessionAssignment = {
+  empresaId: string;
+  sucursalId: string;
+  departamentoId: string;
+  perfilId: string;
+  principal: boolean;
+  estado: boolean;
+  usuarioRegistroId: string;
+  fechaAsignacion: string;
+  empresa: string;
+  sucursal: string;
+  departamento: string;
+  perfil: string;
+};
+
 export type SessionUser = {
   id: string;
   nombre: string;
   apellido: string;
+  fechaNacimiento?: string;
   usuario: string;
   email: string;
   telefono: string;
+  asignaciones?: SessionAssignment[];
+  accesos?: SessionAccesses;
   fechaRegistro: string;
   fechaActualizacion: string;
   estado: boolean;
   sesion: boolean;
 };
 
+type RawSessionProcess = {
+  procesoId: string;
+  nombre: string;
+  codigo: string;
+  icono: string | null;
+  url: string;
+  tipoPermiso: number;
+  permisos: string[];
+};
+
+type RawSessionModule = {
+  moduloId: string;
+  modulo: string;
+  codigo: string;
+  tipo: string;
+  icono: string | null;
+  procesos?: RawSessionProcess[];
+};
+
+type RawSessionAccesses = Partial<Record<keyof SessionAccesses, RawSessionModule[]>>;
+
+type RawSessionUser = Omit<SessionUser, "accesos"> & {
+  accesos?: RawSessionAccesses;
+};
+
 export const TOKEN_STORAGE_KEY = "valian.session.token";
 export const USER_STORAGE_KEY = "valian.session.user";
 
-export function saveSession(token: string, user: SessionUser) {
+const EMPTY_ACCESSES: SessionAccesses = {
+  gestion: [],
+  sistemas: [],
+  otros: [],
+};
+
+function sanitizePathSegment(value: string) {
+  return value
+    .trim()
+    .replace(/^\/+|\/+$/g, "")
+    .toLowerCase();
+}
+
+export function normalizeAccessPath(url: string) {
+  const normalizedUrl = `/${url
+    .trim()
+    .replace(/^\/+|\/+$/g, "")
+    .split("/")
+    .map(sanitizePathSegment)
+    .filter(Boolean)
+    .join("/")}`;
+
+  const aliasedRoutes: Record<string, string> = {
+    "/sistema/gestion/usuarios": "/organizacion/usuarios",
+    "/sistema/gestion/departamentos": "/organizacion/departamentos",
+    "/sistema/gestion/sucursal": "/organizacion/sucursal",
+    "/gestion/usuarios": "/organizacion/usuarios",
+    "/gestion/departamentos": "/organizacion/departamentos",
+    "/gestion/sucursal": "/organizacion/sucursal",
+    "/sistema/seguridad/accesos": "/seguridad/accesos",
+    "/sistema/seguridad/perfiles": "/seguridad/perfiles",
+    "/sistema/sistemas/modulos": "/sistema/modulos",
+    "/sistema/sistemas/procesos": "/sistema/procesos",
+    "/sistemas/modulos": "/sistema/modulos",
+    "/sistemas/procesos": "/sistema/procesos",
+  };
+
+  return aliasedRoutes[normalizedUrl] || normalizedUrl;
+}
+
+function normalizeProcesses(processes?: RawSessionProcess[]) {
+  return Array.isArray(processes)
+    ? processes.map((process) => ({
+        ...process,
+        path: normalizeAccessPath(process.url),
+      }))
+    : [];
+}
+
+function normalizeModules(modules?: RawSessionModule[]) {
+  return Array.isArray(modules)
+    ? modules.map((module) => ({
+        ...module,
+        procesos: normalizeProcesses(module.procesos),
+      }))
+    : [];
+}
+
+export function normalizeSessionAccesses(accesses?: RawSessionAccesses): SessionAccesses {
+  if (!accesses) {
+    return EMPTY_ACCESSES;
+  }
+
+  return {
+    gestion: normalizeModules(accesses.gestion),
+    sistemas: normalizeModules(accesses.sistemas),
+    otros: normalizeModules(accesses.otros),
+  };
+}
+
+export function normalizeSessionUser(user: RawSessionUser): SessionUser {
+  return {
+    ...user,
+    accesos: normalizeSessionAccesses(user.accesos),
+  };
+}
+
+export function saveSession(token: string, user: SessionUser | RawSessionUser) {
   localStorage.setItem(TOKEN_STORAGE_KEY, token);
-  localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+  localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(normalizeSessionUser(user)));
 }
 
 export function clearSession() {
@@ -36,7 +182,7 @@ export function getSessionUser(): SessionUser | null {
   }
 
   try {
-    return JSON.parse(rawUser) as SessionUser;
+    return normalizeSessionUser(JSON.parse(rawUser) as RawSessionUser);
   } catch {
     clearSession();
     return null;
@@ -90,4 +236,15 @@ export function getUserFullName(user: SessionUser | null) {
   }
 
   return `${user.nombre} ${user.apellido}`.trim();
+}
+
+export function getUserCompanyName(user: SessionUser | null) {
+  if (!user?.asignaciones?.length) {
+    return "Mi ERP";
+  }
+
+  const primaryAssignment = user.asignaciones.find((assignment) => assignment.principal && assignment.estado);
+  const activeAssignment = primaryAssignment || user.asignaciones.find((assignment) => assignment.estado);
+
+  return activeAssignment?.empresa?.trim() || "Mi ERP";
 }

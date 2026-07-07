@@ -32,6 +32,7 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Popover from "@mui/material/Popover";
 import Collapse from "@mui/material/Collapse";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 // Elementos de lista y navegación
 import ListItem from "@mui/material/ListItem";
@@ -47,6 +48,7 @@ import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
+import BuildIcon from "@mui/icons-material/Build";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 
 // Iconos de módulos y procesos
@@ -66,10 +68,12 @@ import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import WebStoriesIcon from "@mui/icons-material/WebStories";
 import {
   clearSession,
+  getUserCompanyName,
   getSessionUser,
   getUserFullName,
   getUserInitials,
   hasValidSession,
+  type SessionModule,
 } from "../../session/auth";
 
 const drawerWidth = 320;
@@ -80,87 +84,82 @@ const APP_ASIDE_ICON_CASCADE_MS = 1200;
 const APP_SUBMENU_COLLAPSE_MS = 220;
 const APP_DRAWER_CLOSE_MS = 180;
 const APP_DRAWER_OPEN_MS = 220;
+const APP_MOBILE_ASIDE_AUTOHIDE_MS = 3000;
 
-const MODULOS = {
-  independientes: [
-    {
-      title: "Dashboard",
-      icon: <DashboardIcon />,
-      path: "/dashboard",
-    },
-    {
-      title: "Inventario",
-      icon: <InventoryIcon />,
-      children: [
-        {
-          title: "Productos",
-          icon: <SellIcon />,
-          path: "/inventario/productos",
-        },
-        {
-          title: "Catalogos",
-          icon: <AddCircleIcon />,
-          path: "/inventario/catalogos",
-        }
-      ],
-    },
-  ],
-  sistema: [
-    {
-      title: "Organizacion",
-      icon: <ApartmentIcon />,
-      children: [
-        {
-          title: "Usuarios",
-          icon: <PeopleAltIcon />,
-          path: "/organizacion/usuarios",
-        },
-        {
-          title: "Departamentos",
-          icon: <CorporateFareIcon />,
-          path: "/organizacion/departamentos",
-        },
-        {
-          title: "Sucursal",
-          icon: <AccountBalanceIcon />,
-          path: "/organizacion/sucursal",
-        }
-      ],
-    },
-    {
-      title: "Seguridad",
-      icon: <ShieldIcon />,
-      children: [
-        {
-          title: "Accesos",
-          icon: <VpnKeyIcon />,
-          path: "/seguridad/accesos",
-        },
-        {
-          title: "Perfiles",
-          icon: <RecentActorsIcon />,
-          path: "/seguridad/perfiles",
-        },
-      ],
-    },
-    {
-      title: "Sistema",
-      icon: <DnsIcon />,
-      children: [
-        {
-          title: "Modulos",
-          icon: <ViewModuleIcon />,
-          path: "/sistema/modulos",
-        },
-        {
-          title: "Procesos",
-          icon: <WebStoriesIcon />,
-          path: "/sistema/procesos",
-        },
-      ],
-    },
-  ],
+type NavigationChild = {
+  title: string;
+  icon: React.ReactNode;
+  path: string;
 };
+
+type NavigationItem = {
+  title: string;
+  icon: React.ReactNode;
+  path?: string;
+  children?: NavigationChild[];
+};
+
+type NavigationSection = {
+  key: string;
+  items: NavigationItem[];
+};
+
+function normalizeIconKey(value?: string | null) {
+  return (value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[_\s]+/g, "-");
+}
+
+function resolveNavigationIcon(iconKey?: string | null, fallbackLabel?: string) {
+  const normalizedKey = normalizeIconKey(iconKey);
+  const normalizedLabel = normalizeIconKey(fallbackLabel);
+
+  const iconMap: Record<string, React.ReactNode> = {
+    "dashboard-icon": <DashboardIcon />,
+    "inventory-icon": <InventoryIcon />,
+    "sell-icon": <SellIcon />,
+    "products-icon": <SellIcon />,
+    "add-circle-icon": <AddCircleIcon />,
+    "catalog-icon": <AddCircleIcon />,
+    "apartment-icon": <ApartmentIcon />,
+    "organization-icon": <ApartmentIcon />,
+    "people-icon": <PeopleAltIcon />,
+    "users-icon": <PeopleAltIcon />,
+    "corporate-fare-icon": <CorporateFareIcon />,
+    "department-icon": <CorporateFareIcon />,
+    "account-balance-icon": <AccountBalanceIcon />,
+    "branch-icon": <AccountBalanceIcon />,
+    "shield-icon": <ShieldIcon />,
+    "security-icon": <ShieldIcon />,
+    "vpn-key-icon": <VpnKeyIcon />,
+    "access-icon": <VpnKeyIcon />,
+    "recent-actors-icon": <RecentActorsIcon />,
+    "profile-icon": <RecentActorsIcon />,
+    "pc-icon": <DnsIcon />,
+    "dns-icon": <DnsIcon />,
+    "system-icon": <DnsIcon />,
+    "view-module-icon": <ViewModuleIcon />,
+    "module-icon": <ViewModuleIcon />,
+    "build-icon": <BuildIcon />,
+    "process-icon": <WebStoriesIcon />,
+    "web-stories-icon": <WebStoriesIcon />,
+  };
+
+  return iconMap[normalizedKey] || iconMap[normalizedLabel] || <DnsIcon />;
+}
+
+function mapAccessModulesToNavigationItems(modules: SessionModule[]) {
+  return modules.map((module): NavigationItem => ({
+    title: module.modulo,
+    icon: resolveNavigationIcon(module.icono, module.modulo),
+    children: module.procesos.map((process) => ({
+      title: process.nombre,
+      icon: resolveNavigationIcon(process.icono, process.nombre),
+      path: process.path,
+    })),
+  }));
+}
 
 const openedMixin = (theme: Theme): CSSObject => ({
   width: drawerWidth,
@@ -224,16 +223,20 @@ const Drawer = styled(MuiDrawer, {
   }),
 }));
 
+type DrawerToggleMode = "toggle" | "minimize";
+
 export default function MiniDrawer({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const user = getSessionUser();
+  const companyName = getUserCompanyName(user);
   const [showBootSplash, setShowBootSplash] = useState(true);
   const [animateAsideIcons, setAnimateAsideIcons] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [open, setOpen] = useState(false);
+  const [mobileAsideHidden, setMobileAsideHidden] = useState(false);
   const [submenuOpen, setSubmenuOpen] = useState<{ [key: string]: boolean }>(
     {}
   );
@@ -254,6 +257,33 @@ export default function MiniDrawer({
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
+  const navigationSections = React.useMemo((): NavigationSection[] => {
+    const topItems: NavigationItem[] = [
+      {
+        title: "Dashboard",
+        icon: <DashboardIcon />,
+        path: "/dashboard",
+      },
+      ...mapAccessModulesToNavigationItems(user?.accesos?.otros || []),
+      ...mapAccessModulesToNavigationItems(user?.accesos?.gestion || []),
+    ];
+    const bottomItems = mapAccessModulesToNavigationItems(user?.accesos?.sistemas || []);
+    const sections: NavigationSection[] = [];
+
+    if (topItems.length > 0) {
+      sections.push({ key: "superior", items: topItems });
+    }
+
+    if (bottomItems.length > 0) {
+      sections.push({ key: "sistemas", items: bottomItems });
+    }
+
+    return sections;
+  }, [user]);
+  const navigationItems = React.useMemo(
+    () => navigationSections.flatMap((section) => section.items),
+    [navigationSections]
+  );
 
   const isPathActive = React.useCallback(
     (path?: string) => Boolean(path) && currentPath === path,
@@ -270,10 +300,10 @@ export default function MiniDrawer({
     },
     [isPathActive]
   );
-
   const theme = React.useMemo(
     () =>
       createTheme({
+        cssVariables: true,
         palette: {
           mode,
           ...(mode === "light"
@@ -373,7 +403,7 @@ export default function MiniDrawer({
                       ? alpha("#2563eb", 0.16)
                       : alpha("#94a3b8", 0.2),
                 },
-                '&:hover': {
+                "&:hover": {
                   backgroundColor:
                     mode === "light"
                       ? "rgba(37, 99, 235, 0.08)"
@@ -429,12 +459,41 @@ export default function MiniDrawer({
     [mode, open]
   );
 
+  const isMobileLayout = useMediaQuery(theme.breakpoints.down("md"));
+
+  const handleDrawerToggle = React.useCallback(() => {
+    if (isMobileLayout) {
+      if (mobileAsideHidden) {
+        setMobileAsideHidden(false);
+        setOpen(true);
+        return;
+      }
+
+      setOpen((prev) => !prev);
+      return;
+    }
+
+    setOpen((prev) => !prev);
+  }, [isMobileLayout, mobileAsideHidden]);
+
+  const handleDrawerClose = React.useCallback((mode: DrawerToggleMode = "toggle") => {
+    setOpen(false);
+
+    if (isMobileLayout && mode === "toggle") {
+      setMobileAsideHidden(false);
+    }
+  }, [isMobileLayout]);
+
+  const handleDrawerMinimize = React.useCallback(() => {
+    handleDrawerClose("minimize");
+  }, [handleDrawerClose]);
+
   React.useEffect(() => {
     if (!open) {
       return;
     }
 
-    const activeParent = [...MODULOS.independientes, ...MODULOS.sistema].find(
+    const activeParent = navigationItems.find(
       (item) => item.children?.some((child) => isPathActive(child.path))
     );
 
@@ -449,7 +508,7 @@ export default function MiniDrawer({
 
       return { ...prev, [activeParent.title]: true };
     });
-  }, [open, isPathActive]);
+  }, [navigationItems, open, isPathActive]);
 
   // Submenu expand/collapse
   const handleSubmenuToggle = (title: string) => {
@@ -469,6 +528,10 @@ export default function MiniDrawer({
     event: React.MouseEvent<HTMLElement>,
     title: string
   ) => {
+    if (isMobileLayout) {
+      setMobileAsideHidden(false);
+    }
+
     setAnchorEl(event.currentTarget);
     setPopoverMenu(title);
   };
@@ -555,6 +618,31 @@ export default function MiniDrawer({
     return () => window.clearTimeout(timerId);
   }, [animateAsideIcons]);
 
+  React.useEffect(() => {
+    if (!isMobileLayout) {
+      setMobileAsideHidden(false);
+      return;
+    }
+
+    if (open || showBootSplash || isLoggingOut || Boolean(anchorEl) || Boolean(popoverMenu)) {
+      return;
+    }
+
+    const timerId = window.setTimeout(() => {
+      setMobileAsideHidden(true);
+    }, APP_MOBILE_ASIDE_AUTOHIDE_MS);
+
+    return () => window.clearTimeout(timerId);
+  }, [anchorEl, isLoggingOut, isMobileLayout, open, popoverMenu, showBootSplash]);
+
+  React.useEffect(() => {
+    if (!isMobileLayout || !open) {
+      return;
+    }
+
+    setMobileAsideHidden(false);
+  }, [isMobileLayout, open]);
+
   const activeSplashMode = isLoggingOut ? "logout" : showBootSplash ? "boot" : null;
   const navigationActiveReady = !showBootSplash && !animateAsideIcons;
   let navAnimationIndex = 0;
@@ -629,7 +717,7 @@ export default function MiniDrawer({
             <IconButton
               color="inherit"
               aria-label={open ? "close drawer" : "open drawer"}
-              onClick={() => setOpen(!open)}
+              onClick={handleDrawerToggle}
               edge="start"
               sx={{ marginRight: 2 }}
             >
@@ -641,7 +729,7 @@ export default function MiniDrawer({
               component="div"
               sx={{ flexGrow: 1 }}
             >
-              Mi ERP - Dashboard
+              {companyName}
             </Typography>
             <IconButton
               sx={{ ml: 1 }}
@@ -656,6 +744,7 @@ export default function MiniDrawer({
           className="theme-layout__drawer"
           variant="permanent"
           open={open}
+          sx={isMobileLayout && mobileAsideHidden ? { width: 0, minWidth: 0, flexShrink: 0 } : undefined}
           slotProps={{
             paper: {
               sx: {
@@ -663,20 +752,30 @@ export default function MiniDrawer({
                 flexDirection: 'column',
                 height: '100vh',
                 overflow: 'hidden',
+                ...(isMobileLayout && mobileAsideHidden
+                  ? {
+                      width: 0,
+                      minWidth: 0,
+                      borderRight: "none",
+                      boxShadow: "none",
+                      transform: "translateX(-100%)",
+                      pointerEvents: "none",
+                    }
+                  : {}),
               },
             },
           }}
         >
           <DrawerHeader>
-            <IconButton onClick={() => setOpen(!open)}>
+            <IconButton onClick={handleDrawerMinimize}>
               {open ? <ChevronLeftIcon /> : <MenuIcon />}
             </IconButton>
           </DrawerHeader>
           <Divider />
           <List className="theme-layout__nav-scroll" sx={{ flex: 1 }}>
-            {Object.entries(MODULOS).map(([seccion, items], idx, arr) => (
-              <React.Fragment key={seccion}>
-                {items.map((item) => {
+            {navigationSections.map((section, idx, arr) => (
+              <React.Fragment key={section.key}>
+                {section.items.map((item) => {
                   const itemAnimationIndex = navAnimationIndex;
                   const itemIsActive = isModuleActive(item);
                   navAnimationIndex += 1;

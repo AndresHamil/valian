@@ -1,16 +1,16 @@
 @use "tokens" as *;
 
-.usuarios-view {
+.records-view {
   &__toolbar {
     display: flex;
-    gap: $usuarios-gap-sm;
+    gap: $records-gap-sm;
     align-items: center;
     flex-wrap: wrap;
   }
 
   &__toggle {
     border: 1px solid currentColor;
-    border-radius: $usuarios-radius-md;
+    border-radius: $records-radius-md;
     overflow: hidden;
     color: inherit;
     opacity: 0.88;
@@ -31,13 +31,13 @@
     border: 1px solid var(--mui-palette-divider, rgba(0, 0, 0, 0.12));
     background: var(--mui-palette-background-paper, #fff);
 
-    .usuarios-view__refresh-icon {
+    .records-view__refresh-icon {
       animation: none;
     }
 
     &--loading {
-      .usuarios-view__refresh-icon {
-        animation: usuarios-refresh-spin 0.9s linear infinite;
+      .records-view__refresh-icon {
+        animation: records-refresh-spin 0.9s linear infinite;
       }
     }
   }

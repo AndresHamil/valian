@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { hasValidSession, saveSession } from "../../../session/auth";
+import {
+  hasValidSession,
+  saveSession,
+  type SessionAssignment,
+} from "../../../session/auth";
 
 type LoginCredentials = {
   usuario: string;
@@ -12,39 +16,81 @@ type LoginCredentials = {
 type ActiveSession = {
   id: string;
   dispositivo: string | null;
+  tipoDispositivo?: string | null;
   navegador: string | null;
+  sistemaOperativo: string | null;
   sessionStart: string;
   sessionExpiry: string;
+};
+
+type LoginAccessProcess = {
+  procesoId: string;
+  nombre: string;
+  codigo: string;
+  icono: string | null;
+  url: string;
+  tipoPermiso: number;
+  permisos: string[];
+};
+
+type LoginAccessModule = {
+  moduloId: string;
+  modulo: string;
+  codigo: string;
+  tipo: string;
+  icono: string | null;
+  procesos: LoginAccessProcess[];
+};
+
+type LoginAccessGroups = {
+  gestion: LoginAccessModule[];
+  sistemas: LoginAccessModule[];
+  otros: LoginAccessModule[];
+};
+
+type LoginUser = {
+  id: string;
+  nombre: string;
+  apellido: string;
+  fechaNacimiento?: string;
+  usuario: string;
+  email: string;
+  telefono: string;
+  asignaciones?: SessionAssignment[];
+  accesos?: LoginAccessGroups;
+  fechaRegistro: string;
+  fechaActualizacion: string;
+  estado: boolean;
+  sesion: boolean;
+};
+
+type LoginSession = ActiveSession & {
+  token: string;
+  userAgent?: string | null;
+  ip?: string | null;
+  idioma?: string | null;
+  origen?: string | null;
+  estado?: boolean;
+};
+
+type LoginEntry = {
+  usuario: LoginUser;
+  sesion: LoginSession;
+  sesionesActivas?: number;
 };
 
 type LoginSuccessResponse = {
   success: true;
   message: string;
   error: null;
-  data: Array<{
-    usuario: {
-      id: string;
-      nombre: string;
-      apellido: string;
-      usuario: string;
-      email: string;
-      telefono: string;
-      fechaRegistro: string;
-      fechaActualizacion: string;
-      estado: boolean;
-      sesion: boolean;
-    };
-    sesion: {
-      token: string;
-    };
-  }>;
+  data: LoginEntry[];
 };
 
 type LoginErrorResponse = {
   success: false;
   message: string;
   error: string;
-  data: ActiveSession[] | null;
+  data: Array<ActiveSession | LoginEntry> | null;
 };
 
 type CloseSessionResponse = {
@@ -98,6 +144,64 @@ function detectDevice() {
   }
 
   return "PC";
+}
+
+function detectOperatingSystem() {
+  const userAgent = navigator.userAgent.toLowerCase();
+
+  if (userAgent.includes("android")) {
+    return "Android";
+  }
+
+  if (/iphone|ipad|ipod/.test(userAgent)) {
+    return "iOS";
+  }
+
+  if (userAgent.includes("win")) {
+    return "Windows";
+  }
+
+  if (userAgent.includes("mac")) {
+    return "macOS";
+  }
+
+  if (userAgent.includes("linux")) {
+    return "Linux";
+  }
+
+  return "Desconocido";
+}
+
+function isLoginEntry(session: ActiveSession | LoginEntry): session is LoginEntry {
+  return "sesion" in session && "usuario" in session;
+}
+
+function normalizeActiveSession(session: ActiveSession | LoginEntry): ActiveSession {
+  if (isLoginEntry(session)) {
+    return {
+      id: session.sesion.id,
+      dispositivo: session.sesion.dispositivo,
+      tipoDispositivo: session.sesion.tipoDispositivo,
+      navegador: session.sesion.navegador,
+      sistemaOperativo: session.sesion.sistemaOperativo,
+      sessionStart: session.sesion.sessionStart,
+      sessionExpiry: session.sesion.sessionExpiry,
+    };
+  }
+
+  return {
+    id: session.id,
+    dispositivo: session.dispositivo,
+    tipoDispositivo: session.tipoDispositivo,
+    navegador: session.navegador,
+    sistemaOperativo: session.sistemaOperativo,
+    sessionStart: session.sessionStart,
+    sessionExpiry: session.sessionExpiry,
+  };
+}
+
+function normalizeActiveSessions(sessions: Array<ActiveSession | LoginEntry> | null | undefined) {
+  return Array.isArray(sessions) ? sessions.map(normalizeActiveSession) : [];
 }
 
 export function useLoginBackgroundMotion() {
@@ -321,6 +425,7 @@ export function useLoginScript() {
         {
           ...loginCredentials,
           dispositivo: detectDevice(),
+          sistemaOperativo: detectOperatingSystem(),
         },
         {
           headers: {
@@ -334,7 +439,7 @@ export function useLoginScript() {
       if (payload.success) {
         const sessionData = payload.data[0];
         const token = sessionData?.sesion?.token;
-        const user = sessionData?.usuario;
+        const user = sessionData?.usuario || null;
 
         setMessage(payload.message);
 
@@ -354,15 +459,17 @@ export function useLoginScript() {
       }
 
       setError(payload.message);
-      setActiveSessions(Array.isArray(payload.data) ? payload.data : []);
-      setSessionSelectorLocked(Array.isArray(payload.data) && payload.data.length > 0);
+      const normalizedSessions = normalizeActiveSessions(payload.data);
+      setActiveSessions(normalizedSessions);
+      setSessionSelectorLocked(normalizedSessions.length > 0);
     } catch (requestError) {
       if (axios.isAxiosError<LoginErrorResponse>(requestError) && requestError.response) {
         const apiError = requestError.response.data;
+        const normalizedSessions = normalizeActiveSessions(apiError.data);
 
         setError(apiError.message || "No fue posible iniciar sesion.");
-        setActiveSessions(Array.isArray(apiError.data) ? apiError.data : []);
-        setSessionSelectorLocked(Array.isArray(apiError.data) && apiError.data.length > 0);
+        setActiveSessions(normalizedSessions);
+        setSessionSelectorLocked(normalizedSessions.length > 0);
       } else {
         setError("No fue posible conectar con el servidor de autenticacion.");
       }

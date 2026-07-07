@@ -1,21 +1,21 @@
-$usuarios-gap-lg: 24px;
-$usuarios-gap-md: 16px;
-$usuarios-gap-sm: 12px;
-$usuarios-gap-xs: 8px;
+$records-gap-lg: 24px;
+$records-gap-md: 16px;
+$records-gap-sm: 12px;
+$records-gap-xs: 8px;
 
-$usuarios-radius-md: 8px;
-$usuarios-radius-lg: 10px;
+$records-radius-md: 8px;
+$records-radius-lg: 10px;
 
-$usuarios-padding-mobile: 16px;
-$usuarios-padding-desktop-x: 24px;
-$usuarios-padding-desktop-bottom: 24px;
+$records-padding-mobile: 16px;
+$records-padding-desktop-x: 24px;
+$records-padding-desktop-bottom: 24px;
 
-$usuarios-breakpoint-sm: 600px;
-$usuarios-breakpoint-xl: 1536px;
+$records-breakpoint-sm: 600px;
+$records-breakpoint-xl: 1536px;
 
-$usuarios-card-skeleton-height: 208px;
+$records-item-skeleton-height: 208px;
 
-@mixin usuarios-up($breakpoint) {
+@mixin records-up($breakpoint) {
   @media (min-width: $breakpoint) {
     @content;
   }

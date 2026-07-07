@@ -1,11 +1,6 @@
-@use "tokens" as *;
-
 .records-view {
-  &__grid {
-    display: grid;
-    gap: $records-gap-md;
-    grid-template-columns: 1fr;
-  }
+  display: grid;
+  gap: 24px;
 
   &__item {
     padding: 14px;
@@ -53,26 +48,12 @@
       pointer-events: none;
       transform: rotate(-9deg);
     }
-
-    &--skeleton {
-      min-height: $records-item-skeleton-height;
-    }
-
-    &--interactive {
-      cursor: pointer;
-      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
-
-      &:focus-visible {
-        outline: 2px solid color-mix(in srgb, var(--mui-palette-primary-main, #1976d2) 56%, white);
-        outline-offset: 2px;
-      }
-    }
   }
 
   &__item-header {
     display: grid;
     grid-template-columns: 1fr;
-    gap: $records-gap-sm;
+    gap: 12px;
     justify-items: center;
     align-items: start;
     min-width: 0;
@@ -138,11 +119,6 @@
     gap: 4px;
     min-width: 0;
     text-align: center;
-
-    &--skeleton {
-      width: 100%;
-      justify-items: center;
-    }
   }
 
   &__item-text {
@@ -161,11 +137,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
 
-    &--title {
-      max-width: min(100%, 18rem);
-      letter-spacing: 0.01em;
-    }
-
     &--value {
       justify-self: stretch;
     }
@@ -176,14 +147,9 @@
     }
   }
 
-  &__item-subtitle {
-    max-width: min(100%, 20rem);
-    opacity: 0.82;
-  }
-
   &__item-status {
     display: flex;
-    gap: $records-gap-xs;
+    gap: 8px;
     flex-wrap: wrap;
     padding: 4px 0 8px;
     border-bottom: 1px solid color-mix(in srgb, var(--mui-palette-divider, rgba(0, 0, 0, 0.12)) 88%, transparent);
@@ -200,7 +166,7 @@
   &__item-details {
     display: grid;
     grid-template-columns: 1fr;
-    gap: $records-gap-xs;
+    gap: 8px;
     min-width: 0;
     position: relative;
     z-index: 1;
@@ -218,55 +184,12 @@
     background:
       linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.03)),
       color-mix(in srgb, var(--mui-palette-action-hover, rgba(0, 0, 0, 0.04)) 72%, transparent);
-
-    + .records-view__item-detail {
-      border-top: none;
-    }
-
-    &--skeleton {
-      justify-items: start;
-    }
-  }
-
-  &__profile {
-    display: grid;
-    gap: 20px;
-    align-content: start;
   }
 
   &__detail-layout {
     display: grid;
     gap: 18px;
     align-content: start;
-  }
-
-  &__profile-hero {
-    min-height: 0;
-
-    background:
-      radial-gradient(circle at top left, color-mix(in srgb, var(--mui-palette-primary-main, #1976d2) 10%, transparent) 0%, transparent 38%),
-      radial-gradient(circle at top right, color-mix(in srgb, var(--mui-palette-secondary-main, #0f766e) 8%, transparent) 0%, transparent 30%),
-      linear-gradient(
-        165deg,
-        color-mix(in srgb, var(--mui-palette-background-paper, #fff) 96%, var(--mui-palette-primary-main, #1976d2) 4%) 0%,
-        color-mix(in srgb, var(--mui-palette-background-paper, #fff) 93%, var(--mui-palette-secondary-main, #0f766e) 7%) 100%
-      ),
-      var(--mui-palette-background-paper, #fff);
-
-    &::before {
-      background:
-        linear-gradient(
-          135deg,
-          color-mix(in srgb, var(--mui-palette-common-white, #fff) 10%, transparent),
-          transparent 42%
-        ),
-        linear-gradient(
-          180deg,
-          color-mix(in srgb, var(--mui-palette-text-primary, #111827) 4%, transparent),
-          transparent 32%
-        );
-      opacity: 0.72;
-    }
   }
 
   &__profile-header {
@@ -335,12 +258,6 @@
     border-bottom: none;
   }
 
-  &__profile-grid {
-    display: grid;
-    gap: 16px;
-    grid-template-columns: 1fr;
-  }
-
   &__detail-grid {
     display: grid;
     gap: 16px;
@@ -370,67 +287,16 @@
     gap: 4px;
   }
 
-  &__profile-panel {
-    gap: 14px;
-    padding: 16px;
-    border-color: color-mix(in srgb, var(--mui-palette-divider, rgba(0, 0, 0, 0.12)) 68%, transparent);
-    background:
-      linear-gradient(
-        145deg,
-        color-mix(in srgb, var(--mui-palette-background-paper, #fff) 82%, var(--mui-palette-common-white, #fff) 18%),
-        color-mix(in srgb, var(--mui-palette-background-paper, #fff) 92%, var(--mui-palette-primary-main, #1976d2) 8%)
-      ),
-      color-mix(in srgb, var(--mui-palette-action-hover, rgba(0, 0, 0, 0.04)) 70%, transparent);
-    box-shadow: 0 10px 22px color-mix(in srgb, var(--mui-palette-common-black, #000) 6%, transparent);
-  }
-
   &__profile-label {
     margin: 0;
     letter-spacing: 0.16em;
     color: var(--mui-palette-text-secondary);
     opacity: 0.82;
   }
-
-  &__profile-values {
-    display: grid;
-    gap: 14px;
-    min-width: 0;
-  }
-
-  &__profile-values > * {
-    display: grid;
-    gap: 4px;
-    min-width: 0;
-  }
-
 }
 
-@include records-up($records-breakpoint-sm) {
+@media (min-width: 600px) {
   .records-view {
-    &__grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    &__item {
-      padding: 16px;
-    }
-
-    &__item-status {
-      justify-content: center;
-    }
-
-    &__item-details {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    &__item-detail {
-      grid-template-columns: 1fr;
-    }
-
-    &__profile-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
     &__detail-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -439,21 +305,9 @@
 
 @media (min-width: 900px) {
   .records-view {
-    &__grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-    }
-
     &__item {
       padding: 14px;
       gap: 12px;
-
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow:
-          0 18px 34px rgba(15, 23, 42, 0.09),
-          0 4px 10px rgba(15, 23, 42, 0.05);
-      }
     }
 
     &__item-header {
@@ -484,12 +338,6 @@
       gap: 3px;
     }
 
-    &__item-line {
-      &--title {
-        max-width: 100%;
-      }
-    }
-
     &__item-status {
       justify-content: flex-start;
     }
@@ -506,14 +354,11 @@
     }
 
     &__profile-header > .records-view__item-avatar-wrap {
-      padding: 0;
       width: 174px;
       height: 174px;
     }
 
     &__profile-avatar {
-      width: 100%;
-      height: 100%;
       font-size: 8.8rem;
     }
 
@@ -533,10 +378,6 @@
       justify-content: flex-start;
     }
 
-    &__profile-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
     &__detail-hero {
       padding: 18px 20px;
       gap: 14px;
@@ -548,14 +389,6 @@
 
     &__detail-grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-}
-
-@include records-up($records-breakpoint-xl) {
-  .records-view {
-    &__grid {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
 }

@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import "./index.css";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import AndroidIcon from "@mui/icons-material/Android";
+import AppleIcon from "@mui/icons-material/Apple";
 import ComputerIcon from "@mui/icons-material/Computer";
 import LanguageIcon from "@mui/icons-material/Language";
+import LaptopWindowsIcon from "@mui/icons-material/LaptopWindows";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PhoneIphoneIcon from "@mui/icons-material/PhoneIphone";
 import { useLoginBackgroundMotion, useLoginScript } from "./script";
@@ -10,8 +13,8 @@ import { useLoginBackgroundMotion, useLoginScript } from "./script";
 const LOGIN_VIEW_SWAP_MS = 960;
 const LOGIN_VIEW_TRANSITION_MS = 2200;
 
-function getDeviceIcon(dispositivo: string | null) {
-  const deviceName = (dispositivo || "").toLowerCase();
+function getDeviceIcon(dispositivo: string | null, tipoDispositivo?: string | null) {
+  const deviceName = `${dispositivo || ""} ${tipoDispositivo || ""}`.toLowerCase();
 
   if (deviceName.includes("movil") || deviceName.includes("mobile")) {
     return <PhoneIphoneIcon fontSize="small" />;
@@ -20,8 +23,8 @@ function getDeviceIcon(dispositivo: string | null) {
   return <ComputerIcon fontSize="small" />;
 }
 
-function getDeviceLabel(dispositivo: string | null) {
-  const deviceName = (dispositivo || "").toLowerCase();
+function getDeviceLabel(dispositivo: string | null, tipoDispositivo?: string | null) {
+  const deviceName = `${dispositivo || ""} ${tipoDispositivo || ""}`.toLowerCase();
 
   if (deviceName.includes("movil") || deviceName.includes("mobile")) {
     return "Movil";
@@ -32,6 +35,24 @@ function getDeviceLabel(dispositivo: string | null) {
   }
 
   return dispositivo || "Dispositivo";
+}
+
+function getOperatingSystemIcon(sistemaOperativo: string | null) {
+  const systemName = (sistemaOperativo || "").toLowerCase();
+
+  if (systemName.includes("android")) {
+    return <AndroidIcon fontSize="inherit" />;
+  }
+
+  if (systemName.includes("ios") || systemName.includes("mac")) {
+    return <AppleIcon fontSize="inherit" />;
+  }
+
+  if (systemName.includes("windows")) {
+    return <LaptopWindowsIcon fontSize="inherit" />;
+  }
+
+  return <ComputerIcon fontSize="inherit" />;
 }
 
 export default function Login() {
@@ -184,12 +205,12 @@ export default function Login() {
                   {sessionsToRender.map((session) => (
                     <article className="login-session-card" key={session.id}>
                       <div className="login-session-card__avatar">
-                        {getDeviceIcon(session.dispositivo)}
+                        {getDeviceIcon(session.dispositivo, session.tipoDispositivo)}
                       </div>
 
                       <div className="login-session-card__content">
                         <div className="login-session-card__topline">
-                          <strong>{getDeviceLabel(session.dispositivo)}</strong>
+                          <strong>{getDeviceLabel(session.dispositivo, session.tipoDispositivo)}</strong>
                           <span>{session.sessionStart}</span>
                         </div>
 
@@ -197,6 +218,13 @@ export default function Login() {
                           <p className="login-session-card__meta login-session-card__meta--browser">
                             <LanguageIcon fontSize="inherit" />
                             <span>{session.navegador}</span>
+                          </p>
+                        ) : null}
+
+                        {session.sistemaOperativo ? (
+                          <p className="login-session-card__meta">
+                            {getOperatingSystemIcon(session.sistemaOperativo)}
+                            <span>{session.sistemaOperativo}</span>
                           </p>
                         ) : null}
                       </div>
