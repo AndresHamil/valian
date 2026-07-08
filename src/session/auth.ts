@@ -1,6 +1,7 @@
 export type SessionProcess = {
   procesoId: string;
   nombre: string;
+  descripcion?: string;
   codigo: string;
   icono: string | null;
   url: string;
@@ -58,6 +59,7 @@ export type SessionUser = {
 type RawSessionProcess = {
   procesoId: string;
   nombre: string;
+  descripcion?: string;
   codigo: string;
   icono: string | null;
   url: string;
@@ -114,10 +116,6 @@ export function normalizeAccessPath(url: string) {
     "/gestion/sucursal": "/organizacion/sucursal",
     "/sistema/seguridad/accesos": "/seguridad/accesos",
     "/sistema/seguridad/perfiles": "/seguridad/perfiles",
-    "/sistema/sistemas/modulos": "/sistema/modulos",
-    "/sistema/sistemas/procesos": "/sistema/procesos",
-    "/sistemas/modulos": "/sistema/modulos",
-    "/sistemas/procesos": "/sistema/procesos",
   };
 
   return aliasedRoutes[normalizedUrl] || normalizedUrl;

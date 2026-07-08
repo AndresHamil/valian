@@ -48,24 +48,8 @@ import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
-import BuildIcon from "@mui/icons-material/Build";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 
-// Iconos de módulos y procesos
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import InventoryIcon from "@mui/icons-material/Inventory";
-import SellIcon from "@mui/icons-material/Sell";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
-import ApartmentIcon from "@mui/icons-material/Apartment";
-import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
-import CorporateFareIcon from "@mui/icons-material/CorporateFare";
-import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
-import ShieldIcon from "@mui/icons-material/Shield";
-import VpnKeyIcon from "@mui/icons-material/VpnKey";
-import RecentActorsIcon from "@mui/icons-material/RecentActors";
-import DnsIcon from "@mui/icons-material/Dns";
-import ViewModuleIcon from "@mui/icons-material/ViewModule";
-import WebStoriesIcon from "@mui/icons-material/WebStories";
 import {
   clearSession,
   getUserCompanyName,
@@ -75,6 +59,7 @@ import {
   hasValidSession,
   type SessionModule,
 } from "../../session/auth";
+import { DashboardIcon, resolveNavigationIcon } from "./icons";
 
 const drawerWidth = 320;
 const APP_BOOT_SPLASH_TOTAL_MS = 5700;
@@ -103,51 +88,6 @@ type NavigationSection = {
   key: string;
   items: NavigationItem[];
 };
-
-function normalizeIconKey(value?: string | null) {
-  return (value || "")
-    .trim()
-    .toLowerCase()
-    .replace(/[_\s]+/g, "-");
-}
-
-function resolveNavigationIcon(iconKey?: string | null, fallbackLabel?: string) {
-  const normalizedKey = normalizeIconKey(iconKey);
-  const normalizedLabel = normalizeIconKey(fallbackLabel);
-
-  const iconMap: Record<string, React.ReactNode> = {
-    "dashboard-icon": <DashboardIcon />,
-    "inventory-icon": <InventoryIcon />,
-    "sell-icon": <SellIcon />,
-    "products-icon": <SellIcon />,
-    "add-circle-icon": <AddCircleIcon />,
-    "catalog-icon": <AddCircleIcon />,
-    "apartment-icon": <ApartmentIcon />,
-    "organization-icon": <ApartmentIcon />,
-    "people-icon": <PeopleAltIcon />,
-    "users-icon": <PeopleAltIcon />,
-    "corporate-fare-icon": <CorporateFareIcon />,
-    "department-icon": <CorporateFareIcon />,
-    "account-balance-icon": <AccountBalanceIcon />,
-    "branch-icon": <AccountBalanceIcon />,
-    "shield-icon": <ShieldIcon />,
-    "security-icon": <ShieldIcon />,
-    "vpn-key-icon": <VpnKeyIcon />,
-    "access-icon": <VpnKeyIcon />,
-    "recent-actors-icon": <RecentActorsIcon />,
-    "profile-icon": <RecentActorsIcon />,
-    "pc-icon": <DnsIcon />,
-    "dns-icon": <DnsIcon />,
-    "system-icon": <DnsIcon />,
-    "view-module-icon": <ViewModuleIcon />,
-    "module-icon": <ViewModuleIcon />,
-    "build-icon": <BuildIcon />,
-    "process-icon": <WebStoriesIcon />,
-    "web-stories-icon": <WebStoriesIcon />,
-  };
-
-  return iconMap[normalizedKey] || iconMap[normalizedLabel] || <DnsIcon />;
-}
 
 function mapAccessModulesToNavigationItems(modules: SessionModule[]) {
   return modules.map((module): NavigationItem => ({
