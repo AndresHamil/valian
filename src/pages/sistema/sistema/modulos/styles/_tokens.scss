@@ -1,0 +1,22 @@
+$records-gap-lg: 24px;
+$records-gap-md: 16px;
+$records-gap-sm: 12px;
+$records-gap-xs: 8px;
+
+$records-radius-md: 8px;
+$records-radius-lg: 10px;
+
+$records-padding-mobile: 16px;
+$records-padding-desktop-x: 24px;
+$records-padding-desktop-bottom: 24px;
+
+$records-breakpoint-sm: 600px;
+$records-breakpoint-xl: 1536px;
+
+$records-item-skeleton-height: 208px;
+
+@mixin records-up($breakpoint) {
+  @media (min-width: $breakpoint) {
+    @content;
+  }
+}

@@ -1,0 +1,130 @@
+.spotlight-dialog__backdrop {
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background-color: rgba(15, 23, 42, 0.28);
+}
+
+.spotlight-dialog__paper {
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid;
+  border-color: color-mix(
+    in srgb,
+    var(--mui-palette-primary-main, #1976d2) 10%,
+    var(--mui-palette-divider, rgba(0, 0, 0, 0.12))
+  );
+  box-shadow: 0 26px 80px rgba(15, 23, 42, 0.22);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--mui-palette-background-paper, #fff) 98%, var(--mui-palette-common-white, #fff)) 0%,
+    color-mix(in srgb, var(--mui-palette-background-paper, #fff) 92%, var(--mui-palette-primary-main, #1976d2) 8%) 100%
+  );
+}
+
+.spotlight-dialog__title {
+  position: relative;
+  padding: 20px 20px 24px;
+  border-bottom: 1px solid;
+  border-color: color-mix(
+    in srgb,
+    var(--mui-palette-primary-main, #1976d2) 12%,
+    var(--mui-palette-divider, rgba(0, 0, 0, 0.12))
+  );
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--mui-palette-background-paper, #fff) 86%, var(--mui-palette-primary-main, #1976d2) 14%) 0%,
+    color-mix(in srgb, var(--mui-palette-background-paper, #fff) 90%, var(--mui-palette-secondary-main, #0f766e) 10%) 100%
+  );
+}
+
+.spotlight-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.spotlight-dialog__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  color: var(--mui-palette-primary-main, #1976d2);
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--mui-palette-background-paper, #fff) 92%, var(--mui-palette-common-white, #fff)) 0%,
+    color-mix(in srgb, var(--mui-palette-background-paper, #fff) 78%, transparent) 100%
+  );
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+  border: 1px solid color-mix(in srgb, var(--mui-palette-divider, rgba(0, 0, 0, 0.12)) 72%, transparent);
+  flex-shrink: 0;
+}
+
+.spotlight-dialog__copy {
+  min-width: 0;
+}
+
+.spotlight-dialog__eyebrow {
+  display: block;
+  letter-spacing: 1.1px;
+  color: var(--mui-palette-primary-main, #1976d2);
+  font-weight: 800;
+}
+
+.spotlight-dialog__heading {
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.spotlight-dialog__heading--with-description {
+  margin-bottom: 6px;
+}
+
+.spotlight-dialog__description {
+  max-width: 560px;
+}
+
+.spotlight-dialog__content {
+  position: relative;
+  padding: 16px 16px 24px;
+  background: radial-gradient(
+    circle at top right,
+    color-mix(in srgb, var(--mui-palette-primary-main, #1976d2) 6%, transparent) 0%,
+    transparent 32%
+  );
+}
+
+.spotlight-dialog__actions {
+  position: relative;
+  padding: 16px 20px 20px;
+  border-top: 1px solid;
+  border-color: color-mix(
+    in srgb,
+    var(--mui-palette-primary-main, #1976d2) 10%,
+    var(--mui-palette-divider, rgba(0, 0, 0, 0.12))
+  );
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--mui-palette-background-default, #fff) 58%, transparent) 0%,
+    color-mix(in srgb, var(--mui-palette-background-paper, #fff) 96%, transparent) 100%
+  );
+}
+
+@media (min-width: 900px) {
+  .spotlight-dialog__paper {
+    border-radius: 16px;
+  }
+
+  .spotlight-dialog__title {
+    padding: 24px 28px;
+  }
+
+  .spotlight-dialog__content {
+    padding: 24px 28px;
+  }
+
+  .spotlight-dialog__actions {
+    padding: 16px 28px 20px;
+  }
+}

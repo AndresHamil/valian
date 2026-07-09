@@ -107,18 +107,7 @@ export function normalizeAccessPath(url: string) {
     .filter(Boolean)
     .join("/")}`;
 
-  const aliasedRoutes: Record<string, string> = {
-    "/sistema/gestion/usuarios": "/organizacion/usuarios",
-    "/sistema/gestion/departamentos": "/organizacion/departamentos",
-    "/sistema/gestion/sucursal": "/organizacion/sucursal",
-    "/gestion/usuarios": "/organizacion/usuarios",
-    "/gestion/departamentos": "/organizacion/departamentos",
-    "/gestion/sucursal": "/organizacion/sucursal",
-    "/sistema/seguridad/accesos": "/seguridad/accesos",
-    "/sistema/seguridad/perfiles": "/seguridad/perfiles",
-  };
-
-  return aliasedRoutes[normalizedUrl] || normalizedUrl;
+  return normalizedUrl;
 }
 
 function normalizeProcesses(processes?: RawSessionProcess[]) {
@@ -185,6 +174,19 @@ export function getSessionUser(): SessionUser | null {
     clearSession();
     return null;
   }
+}
+
+export function getSessionProcessByPath(pathname: string) {
+  const user = getSessionUser();
+  const processGroups = [
+    ...(user?.accesos?.gestion || []),
+    ...(user?.accesos?.sistemas || []),
+    ...(user?.accesos?.otros || []),
+  ];
+
+  return processGroups
+    .flatMap((module) => module.procesos)
+    .find((process) => process.path === pathname);
 }
 
 export function hasRequiredSessionData(user: SessionUser | null) {

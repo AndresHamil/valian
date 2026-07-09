@@ -16,14 +16,38 @@ import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
 
 // Inventario
 import InventoryIcon from "@mui/icons-material/Inventory";
+import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import SellIcon from "@mui/icons-material/Sell";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
+import WarehouseRoundedIcon from "@mui/icons-material/WarehouseRounded";
 
 // Organizacion
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import CorporateFareIcon from "@mui/icons-material/CorporateFare";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+
+// ####################################################################################### Gestion
+// Seguridad > Modulos y procesos especificos
+import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
+import LinkedCameraRoundedIcon from '@mui/icons-material/LinkedCameraRounded';
+// #######################################################################################
+
+// ####################################################################################### Sistema
+// Sistemas
+import DesktopMacRoundedIcon from '@mui/icons-material/DesktopMacRounded';
+import DesktopWindowsRoundedIcon from "@mui/icons-material/DesktopWindowsRounded";
+import ViewModuleRoundedIcon from "@mui/icons-material/ViewModuleRounded";
+// Accesos
+import KeyRoundedIcon from '@mui/icons-material/KeyRounded';
+import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded';
+import BadgeRoundedIcon from '@mui/icons-material/BadgeRounded';
+// Organizacion
+import CorporateFareRoundedIcon from '@mui/icons-material/CorporateFareRounded';
+import WorkRoundedIcon from '@mui/icons-material/WorkRounded';
+import ApartmentRoundedIcon from '@mui/icons-material/ApartmentRounded';
+import SafetyDividerRoundedIcon from '@mui/icons-material/SafetyDividerRounded';
+// #######################################################################################
 
 // Seguridad
 import ShieldIcon from "@mui/icons-material/Shield";
@@ -36,30 +60,62 @@ import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import WebStoriesIcon from "@mui/icons-material/WebStories";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
 
-// Sistema > Modulos y procesos especificos
-import DesktopWindowsRoundedIcon from "@mui/icons-material/DesktopWindowsRounded";
-import ViewModuleRoundedIcon from "@mui/icons-material/ViewModuleRounded";
+
 
 
 function normalizeIconKey(value?: string | null) {
   return (value || "")
     .trim()
     .toLowerCase()
+    .replace(/[^a-z0-9\s_-]+/g, "")
     .replace(/[_\s]+/g, "-");
 }
 
-// iconMap conecta el alias guardado en backend con el componente real de MUI.
-// Si backend manda un alias que no exista aqui, la UI usara SettingsSuggestIcon como fallback.
+
 const iconMap: Record<string, ReactNode> = {
+  // ###################################################################### TIPO GESTION
+  // Seguridad > 
+  "security-rounded": <SecurityRoundedIcon />,
+  "linked-camera-rounded": <LinkedCameraRoundedIcon />,
+  // ###################################################################### TIPO SISTEMA
+  // Sistemas > 
+  "desktop-mac-rounded": <DesktopMacRoundedIcon />,
+  "desktop-windows-rounded-icon": <DesktopWindowsRoundedIcon />,
+  "view-module-rounded-icon": <ViewModuleRoundedIcon />,
+  // Accesos > 
+  "key-rounded": <KeyRoundedIcon />,
+  "people-alt-rounded": <PeopleAltRoundedIcon />,
+  "badge-rounded": <BadgeRoundedIcon />,
+  // Organizacion > 
+  "corporate-fare-rounded": <CorporateFareRoundedIcon />,
+  "work-rounded": <WorkRoundedIcon />,
+  "apartment-rounded": <ApartmentRoundedIcon />,
+  "safety-divider-rounded": <SafetyDividerRoundedIcon />,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   // Base compartida
   "dashboard-icon": <DashboardIcon />,
 
   // Inventario
   "inventory-icon": <InventoryIcon />,
+  "inventory-2-rounded": <Inventory2RoundedIcon />,
   "sell-icon": <SellIcon />,
   "products-icon": <SellIcon />,
   "add-circle-icon": <AddCircleIcon />,
   "catalog-icon": <AddCircleIcon />,
+  "ware-house-rounded": <WarehouseRoundedIcon />,
 
   // Organizacion
   "apartment-icon": <ApartmentIcon />,
@@ -70,6 +126,12 @@ const iconMap: Record<string, ReactNode> = {
   "department-icon": <CorporateFareIcon />,
   "account-balance-icon": <AccountBalanceIcon />,
   "branch-icon": <AccountBalanceIcon />,
+
+
+  
+
+
+  
 
   // Seguridad
   "shield-icon": <ShieldIcon />,
@@ -90,11 +152,7 @@ const iconMap: Record<string, ReactNode> = {
   "web-stories-icon": <WebStoriesIcon />,
   "show-chart-icon": <ShowChartIcon />,
 
-  // Sistema > Modulos
-  "desktop-windows-rounded-icon": <DesktopWindowsRoundedIcon />,
-
-  // Sistema > Procesos
-  "view-module-rounded-icon": <ViewModuleRoundedIcon />,
+  
 };
 
 export function resolveNavigationIcon(iconKey?: string | null, fallbackLabel?: string) {

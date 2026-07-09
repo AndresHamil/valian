@@ -31,6 +31,7 @@ import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import type { TypographyProps } from "@mui/material/Typography";
+import { resolveNavigationIcon } from "../../../../components/ThemeProvider/icons";
 import {
   ACTIONS_COLUMN_WIDTH,
   BODY_CELL_SX,
@@ -277,6 +278,31 @@ function ModulosTableSection({ loading, rowsPerPage, paginatedRows, onOpenDetail
                         <TableCell key={column.id} sx={BODY_CELL_SX}>
                           <OverflowFadeText variant="body2" lineClassName="records-view__item-line--value">
                             {row.descripcion}
+                          </OverflowFadeText>
+                        </TableCell>
+                      );
+                    }
+
+                    if (column.id === "nombre") {
+                      return (
+                        <TableCell key={column.id} sx={BODY_CELL_SX}>
+                          <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1.25, minWidth: 0 }}>
+                            <Box sx={{ display: "inline-flex", alignItems: "center", color: "primary.main", flexShrink: 0 }}>
+                              {resolveNavigationIcon(row.icono, row.nombre)}
+                            </Box>
+                            <OverflowFadeText variant="body2" lineClassName="records-view__item-line--value">
+                              {row.nombre}
+                            </OverflowFadeText>
+                          </Box>
+                        </TableCell>
+                      );
+                    }
+
+                    if (column.id === "icono") {
+                      return (
+                        <TableCell key={column.id} sx={BODY_CELL_SX}>
+                          <OverflowFadeText variant="body2" lineClassName="records-view__item-line--value">
+                            {row.icono || "Sin icono"}
                           </OverflowFadeText>
                         </TableCell>
                       );

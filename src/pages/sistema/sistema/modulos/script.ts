@@ -13,6 +13,7 @@ export type Column = {
     | "descripcion"
     | "tipo"
     | "codigo"
+    | "icono"
     | "numeroProcesos"
     | "fechaRegistro"
     | "estado";
@@ -49,6 +50,7 @@ export const columns: readonly Column[] = [
   { id: "descripcion", label: "Descripcion", minWidth: 280 },
   { id: "tipo", label: "Tipo", minWidth: 140 },
   { id: "codigo", label: "Codigo", minWidth: 120 },
+  { id: "icono", label: "Icon", minWidth: 190 },
   { id: "numeroProcesos", label: "Procesos", minWidth: 120 },
   { id: "fechaRegistro", label: "Registro", minWidth: 180 },
   { id: "estado", label: "Estado", minWidth: 120 },
@@ -56,7 +58,7 @@ export const columns: readonly Column[] = [
 
 export const BODY_ROW_HEIGHT = 53;
 export const ACTIONS_COLUMN_WIDTH = 64;
-export const TABLE_MIN_WIDTH = 1240;
+export const TABLE_MIN_WIDTH = 1430;
 export const BODY_CELL_SX = {
   height: BODY_ROW_HEIGHT,
   py: 1,
