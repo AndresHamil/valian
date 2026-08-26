@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import type { ChangeEvent, MouseEvent } from "react";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
-import { getSessionToken, getSessionUser } from "../../../../session/auth";
+import api from "../../../../shared/api";
+import { getSessionUser } from "../../../../session/auth";
 
 const CONSULTAR_MODULOS_URL = "/api/sistema/sistemas/modulos/consultarModulos";
 
@@ -125,14 +125,7 @@ export function useModulosScript() {
     setRequestError("");
 
     try {
-      const token = getSessionToken();
-      const response = await axios.get<ConsultarModulosResponse>(CONSULTAR_MODULOS_URL, {
-        headers: token
-          ? {
-              Authorization: token,
-            }
-          : undefined,
-      });
+      const response = await api.get<ConsultarModulosResponse>(CONSULTAR_MODULOS_URL);
 
       if (!response.data.success) {
         setRequestError(response.data.message || "No fue posible consultar los modulos.");

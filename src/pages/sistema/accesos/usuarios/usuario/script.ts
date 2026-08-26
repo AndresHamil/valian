@@ -1,107 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { getSessionToken } from "../../../../../session/auth";
+import {
+  requestConsultarUsuarioById,
+  requestEditarUsuario,
+  resolveRequestMessage,
+} from "../api";
+import {
+  USUARIOS_ROUTE,
+  buildEditUsuarioForm,
+  buildEditUsuarioPayload,
+  validateEditUsuarioForm,
+  type ConsultarUsuarioResponse,
+  type EditUsuarioForm,
+  type MutationResponse,
+} from "../model";
 
-const CONSULTAR_USUARIO_URL = "/api/sistema/accesos/usuarios/consultarUsuario";
-const EDITAR_USUARIO_URL = "/api/sistema/accesos/usuarios/editarUsuario";
-const USUARIOS_ROUTE = "/sistema/accesos/usuarios";
-
-type UsuarioApiItem = {
-  id: string;
-  nombre: string;
-  apellido: string;
-  usuario: string;
-  email: string;
-  telefono: string;
-  fechaRegistro: string;
-  fechaActualizacion: string;
-  estado: boolean;
-  sesion: boolean;
-};
-
-type ConsultarUsuarioResponse = {
-  success: boolean;
-  message: string;
-  error: string | null;
-  data: UsuarioApiItem;
-};
-
-type MutationResponse = {
-  success: boolean;
-  message: string;
-  error: string | null;
-};
-
-export type EditUsuarioForm = {
-  id: string;
-  nombre: string;
-  apellido: string | null;
-  usuario: string;
-  email: string | null;
-  telefono: string | null;
-  fechaRegistro: string;
-  fechaActualizacion: string;
-  passwordactual: string | null;
-  passworNueva: string | null;
-  estado: boolean | null;
-  sesion: boolean;
-};
-
-type EditUsuarioPayload = {
-  id: string;
-  nombre: string | null;
-  apellido: string | null;
-  email: string | null;
-  telefono: string | null;
-  passwordactual: string | null;
-  passworNueva: string | null;
-  estado: boolean | null;
-  sesion: boolean | null;
-};
-
-function buildEditUsuarioForm(usuario: UsuarioApiItem): EditUsuarioForm {
-  return {
-    id: usuario.id,
-    nombre: usuario.nombre,
-    apellido: usuario.apellido || null,
-    usuario: usuario.usuario,
-    email: usuario.email || null,
-    telefono: usuario.telefono || null,
-    fechaRegistro: usuario.fechaRegistro,
-    fechaActualizacion: usuario.fechaActualizacion,
-    passwordactual: null,
-    passworNueva: null,
-    estado: usuario.estado,
-    sesion: usuario.sesion,
-  };
-}
-
-function normalizeOptionalText(value: string | null) {
-  const normalized = value?.trim() ?? "";
-  return normalized ? normalized : null;
-}
-
-function buildEditUsuarioPayload(current: EditUsuarioForm, original: EditUsuarioForm): EditUsuarioPayload {
-  const normalizedNombre = current.nombre.trim();
-  const normalizedApellido = normalizeOptionalText(current.apellido);
-  const normalizedEmail = normalizeOptionalText(current.email);
-  const normalizedTelefono = normalizeOptionalText(current.telefono);
-  const normalizedPasswordActual = normalizeOptionalText(current.passwordactual);
-  const normalizedPasswordNueva = normalizeOptionalText(current.passworNueva);
-
-  return {
-    id: current.id,
-    nombre: normalizedNombre !== original.nombre.trim() ? normalizedNombre : null,
-    apellido: normalizedApellido !== normalizeOptionalText(original.apellido) ? normalizedApellido : null,
-    email: normalizedEmail !== normalizeOptionalText(original.email) ? normalizedEmail : null,
-    telefono: normalizedTelefono !== normalizeOptionalText(original.telefono) ? normalizedTelefono : null,
-    passwordactual: normalizedPasswordActual,
-    passworNueva: normalizedPasswordNueva,
-    estado: current.estado !== original.estado ? current.estado : null,
-    sesion: null,
-  };
-}
+export type { EditUsuarioForm } from "../model";
 
 export function getUsuarioProfileInitial(nombreCompleto: string) {
   return nombreCompleto.trim().charAt(0).toUpperCase() || "U";
@@ -125,62 +40,77 @@ export function useUsuarioDetalleScript() {
     return [form.nombre, form.apellido].filter(Boolean).join(" ") || "Usuario";
   }, [form]);
 
-  const fetchUsuario = async () => {
+  const fetchUsuario = async (options?: { isActive?: () => boolean }) => {
     if (!id) {
-      setLoading(false);
-      setError("No se encontro el identificador del usuario.");
+      if (!options?.isActive || options.isActive()) {
+        setLoading(false);
+        setError("No se encontro el identificador del usuario.");
+      }
       return;
     }
 
     const token = getSessionToken();
 
     if (!token) {
-      setLoading(false);
-      setError("No se encontro un token de sesion para consultar el usuario.");
+      if (!options?.isActive || options.isActive()) {
+        setLoading(false);
+        setError("No se encontro un token de sesion para consultar el usuario.");
+      }
       return;
     }
 
-    setLoading(true);
-    setError("");
+    if (!options?.isActive || options.isActive()) {
+      setLoading(true);
+      setError("");
+    }
 
     try {
-      const response = await axios.post<ConsultarUsuarioResponse>(
-        CONSULTAR_USUARIO_URL,
-        { id },
-        {
-          headers: {
-            Authorization: token,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await requestConsultarUsuarioById(token, id);
 
-      if (!response.data.success) {
-        setError(response.data.message || "No fue posible consultar el usuario.");
+      if (options?.isActive && !options.isActive()) {
+        return;
+      }
+
+      if (!response.success) {
+        setError(response.message || "No fue posible consultar el usuario.");
         setForm(null);
         setOriginalForm(null);
         return;
       }
 
-      const hydratedForm = buildEditUsuarioForm(response.data.data);
+      const hydratedForm = buildEditUsuarioForm(response.data);
       setForm(hydratedForm);
       setOriginalForm(hydratedForm);
+      setIsEditing(false);
     } catch (requestError) {
-      if (axios.isAxiosError<ConsultarUsuarioResponse>(requestError) && requestError.response) {
-        setError(requestError.response.data.message || "No fue posible consultar el usuario.");
-      } else {
-        setError("No fue posible conectar con el servicio de consulta de usuario.");
+      if (options?.isActive && !options.isActive()) {
+        return;
       }
 
+      setError(
+        resolveRequestMessage<ConsultarUsuarioResponse>(
+          requestError,
+          "No fue posible consultar el usuario.",
+          "No fue posible conectar con el servicio de consulta de usuario."
+        )
+      );
       setForm(null);
       setOriginalForm(null);
     } finally {
-      setLoading(false);
+      if (!options?.isActive || options.isActive()) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    void fetchUsuario();
+    let isActive = true;
+
+    void fetchUsuario({ isActive: () => isActive });
+
+    return () => {
+      isActive = false;
+    };
   }, [id]);
 
   const handleBack = () => {
@@ -201,13 +131,14 @@ export function useUsuarioDetalleScript() {
   };
 
   const handleStartEdit = () => {
+    setError("");
     setIsEditing(true);
   };
 
   const handleCancelEdit = () => {
-    setIsEditing(false);
     setError("");
     setForm(originalForm);
+    setIsEditing(false);
   };
 
   const handleSubmit = async () => {
@@ -222,8 +153,10 @@ export function useUsuarioDetalleScript() {
       return;
     }
 
-    if (!form.nombre.trim()) {
-      setError("El nombre es obligatorio.");
+    const validationResult = validateEditUsuarioForm(form);
+
+    if (!validationResult.isValid) {
+      setError(validationResult.message || "No fue posible validar la edicion del usuario.");
       return;
     }
 
@@ -232,26 +165,23 @@ export function useUsuarioDetalleScript() {
 
     try {
       const payload = buildEditUsuarioPayload(form, originalForm);
-      const response = await axios.put<MutationResponse>(EDITAR_USUARIO_URL, payload, {
-        headers: {
-          Authorization: token,
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await requestEditarUsuario(token, payload);
 
-      if (!response.data.success) {
-        setError(response.data.message || "No fue posible editar el usuario.");
+      if (!response.success) {
+        setError(response.message || "No fue posible editar el usuario.");
         return;
       }
 
       setIsEditing(false);
       await fetchUsuario();
     } catch (requestError) {
-      if (axios.isAxiosError<MutationResponse>(requestError) && requestError.response) {
-        setError(requestError.response.data.message || "No fue posible editar el usuario.");
-      } else {
-        setError("No fue posible conectar con el servicio de edicion de usuarios.");
-      }
+      setError(
+        resolveRequestMessage<MutationResponse>(
+          requestError,
+          "No fue posible editar el usuario.",
+          "No fue posible conectar con el servicio de edicion de usuarios."
+        )
+      );
     } finally {
       setSubmitting(false);
     }

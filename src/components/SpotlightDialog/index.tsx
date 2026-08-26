@@ -90,6 +90,15 @@ export default function SpotlightDialog({
   actionsSx,
 }: SpotlightDialogProps) {
   const isMobile = useMediaQuery("(max-width:600px)");
+  const dialogPaperBaseSx: SxProps<Theme> = {
+    transformOrigin: { xs: "center bottom", md: "center center" },
+    animation: isMobile ? "none" : `${dialogDesktopBounceIn} 340ms cubic-bezier(0.22, 1, 0.36, 1)`,
+    willChange: isMobile ? "auto" : "transform, opacity",
+  };
+  const dialogPaperSx = [
+    dialogPaperBaseSx,
+    ...(Array.isArray(paperSx) ? paperSx : paperSx ? [paperSx] : []),
+  ] as SxProps<Theme>;
 
   return (
     <Dialog
@@ -107,14 +116,7 @@ export default function SpotlightDialog({
       }}
       PaperProps={{
         className: "spotlight-dialog__paper",
-        sx: [
-          {
-            transformOrigin: { xs: "center bottom", md: "center center" },
-            animation: isMobile ? "none" : `${dialogDesktopBounceIn} 340ms cubic-bezier(0.22, 1, 0.36, 1)`,
-            willChange: isMobile ? "auto" : "transform, opacity",
-          },
-          paperSx,
-        ],
+        sx: dialogPaperSx,
       }}
     >
       <DialogTitle
