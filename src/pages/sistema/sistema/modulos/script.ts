@@ -3,6 +3,7 @@ import type { ChangeEvent, MouseEvent } from "react";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "../../../../shared/api";
+import axios from "axios";
 import { getSessionUser } from "../../../../session/auth";
 
 const CONSULTAR_MODULOS_URL = "/api/sistema/sistemas/modulos/consultarModulos";
