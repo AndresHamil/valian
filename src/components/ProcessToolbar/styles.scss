@@ -1,0 +1,39 @@
+.process-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+
+  &__actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  &__icon-button,
+  &__refresh-button {
+    border: 1px solid var(--mui-palette-divider, rgba(0, 0, 0, 0.12));
+    background: var(--mui-palette-background-paper, #fff);
+  }
+
+  &__refresh-icon {
+    animation: none;
+  }
+
+  &__refresh-button--loading {
+    .process-toolbar__refresh-icon {
+      animation: process-toolbar-refresh-spin 0.9s linear infinite;
+    }
+  }
+}
+
+@keyframes process-toolbar-refresh-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

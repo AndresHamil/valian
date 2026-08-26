@@ -1,0 +1,27 @@
+.module-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  &__copy {
+    min-width: 0;
+  }
+
+  &__title {
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+
+  &__description {
+    max-width: 72ch;
+  }
+
+  &__actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+}

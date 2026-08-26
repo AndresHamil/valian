@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import "./index.scss";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
-import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import TableRowsRoundedIcon from "@mui/icons-material/TableRowsRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import ViewModuleRoundedIcon from "@mui/icons-material/ViewModuleRounded";
@@ -15,7 +12,6 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
-import InputAdornment from "@mui/material/InputAdornment";
 import Paper from "@mui/material/Paper";
 import Skeleton from "@mui/material/Skeleton";
 import Table from "@mui/material/Table";
@@ -25,12 +21,13 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
-import TextField from "@mui/material/TextField";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import type { TypographyProps } from "@mui/material/Typography";
+import ProcessToolbar from "../../../../components/ProcessToolbar";
+import ProcessHeader from "../../../../components/ProcessHeader";
 import { resolveNavigationIcon } from "../../../../components/ThemeProvider/icons";
 import {
   ACTIONS_COLUMN_WIDTH,
@@ -142,16 +139,10 @@ function OverflowFadeText({ children, className, lineClassName, ...props }: Over
 
 function ModulosHeader({ viewMode, description, onChange }: ViewModeToggleProps) {
   return (
-    <Box>
-      <Box className="records-view__header">
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-            Modulos
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            {description}
-          </Typography>
-        </Box>
+    <ProcessHeader
+      title="Modulos"
+      description={description}
+      actions={
         <ToggleButtonGroup
           value={viewMode}
           exclusive
@@ -167,8 +158,8 @@ function ModulosHeader({ viewMode, description, onChange }: ViewModeToggleProps)
             <ViewModuleRoundedIcon fontSize="small" />
           </ToggleButton>
         </ToggleButtonGroup>
-      </Box>
-    </Box>
+      }
+    />
   );
 }
 
@@ -186,50 +177,17 @@ function ModulosErrorBanner({ message }: { message: string }) {
 
 function ModulosToolbar({ loading, searchTerm, onSearchChange, onClearSearch, onRefresh }: ToolbarProps) {
   return (
-    <Box className="records-view__toolbar">
-      <TextField
-        value={searchTerm}
-        onChange={onSearchChange}
-        placeholder="Buscar en los modulos cargados"
-        size="small"
-        disabled={loading}
-        sx={{ flex: "1 1 320px", minWidth: 260 }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchRoundedIcon fontSize="small" />
-            </InputAdornment>
-          ),
-          endAdornment: searchTerm ? (
-            <InputAdornment position="end">
-              <Tooltip title="Limpiar busqueda">
-                <IconButton
-                  aria-label="limpiar busqueda"
-                  edge="end"
-                  size="small"
-                  onClick={onClearSearch}
-                >
-                  <CloseRoundedIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
-            </InputAdornment>
-          ) : null,
-        }}
-      />
-      <Tooltip title={loading ? "Actualizando modulos" : "Actualizar modulos"}>
-        <span>
-          <IconButton
-            aria-label="actualizar modulos"
-            onClick={onRefresh}
-            disabled={loading}
-            color="primary"
-            className={`records-view__refresh-button${loading ? " records-view__refresh-button--loading" : ""}`}
-          >
-            <RefreshRoundedIcon className="records-view__refresh-icon" />
-          </IconButton>
-        </span>
-      </Tooltip>
-    </Box>
+    <ProcessToolbar
+      loading={loading}
+      searchTerm={searchTerm}
+      searchPlaceholder="Buscar en los modulos cargados"
+      onSearchChange={onSearchChange}
+      onClearSearch={onClearSearch}
+      onRefresh={onRefresh}
+      refreshTitleIdle="Actualizar modulos"
+      refreshTitleLoading="Actualizando modulos"
+      refreshAriaLabel="actualizar modulos"
+    />
   );
 }
 

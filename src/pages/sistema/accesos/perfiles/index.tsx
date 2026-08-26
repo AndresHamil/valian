@@ -1,33 +1,19 @@
-import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
+import TemplateProcessPage from "../../../../components/TemplateProcessPage";
 import "./index.scss";
-import { useProcessScript } from "./script";
+import { usePerfilesProcessScript } from "./script";
 
-// Plantilla base:
-// 1. Renombra la carpeta test2 por el nombre real del proceso.
-// 2. Renombra este componente segun la pantalla real.
-// 3. Sustituye el contenido base por la UI del proceso.
 export default function PerfilesPage() {
-  const { permiso, titulo, descripcion } = useProcessScript();
+  const { permiso, titulo, descripcion } = usePerfilesProcessScript();
 
   if (permiso) {
     return null;
   }
 
   return (
-    <Box className="template-process">
-      <Paper className="template-process__card">
-        <Typography variant="h4" className="template-process__title">
-          {titulo}
-        </Typography>
-        <Typography variant="body1" color="text.secondary" className="template-process__description">
-          {descripcion}
-        </Typography>
-        <Typography variant="body2" className="template-process__body">
-          Contenido base del proceso.
-        </Typography>
-      </Paper>
-    </Box>
+    <TemplateProcessPage
+      title={titulo}
+      description={descripcion}
+      body="Vista base del proceso de perfiles del sistema. Esta pantalla ya consume la plantilla compartida para mantener el mismo contrato visual y tecnico del resto de procesos nuevos."
+    />
   );
 }

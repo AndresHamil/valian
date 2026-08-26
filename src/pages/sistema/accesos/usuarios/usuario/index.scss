@@ -1,4 +1,5 @@
-.records-view {
+.usuario-detail {
+  .records-view {
   display: grid;
   gap: 24px;
   --records-theme-surface: var(--mui-palette-background-paper, #fff);
@@ -582,4 +583,5 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
+}
 }
