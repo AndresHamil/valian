@@ -7,7 +7,7 @@ export default ({ mode }: { mode: string }): UserConfig => {
   const env = loadEnv(mode, process.cwd(), "");
   const apiTarget = env.URL_BASE || DEFAULT_API_TARGET;
 
-  console.log(`\x1b[36m➜  API Host:\x1b[0m ${apiTarget}`);
+  console.log(`\x1b[94m➜  API Host:\x1b[0m ${apiTarget}`);
 
   return defineConfig({
     plugins: [react()],
@@ -22,6 +22,9 @@ export default ({ mode }: { mode: string }): UserConfig => {
     },
   });
 };
+
+
+
 
 
 

@@ -1,6 +1,9 @@
-import type { AppRoute } from "../types";
+import { createAppRoutes, type AppRoute } from "../types";
 
-export const sistemaProcesosRoutes: AppRoute[] = [
-  { path: "/sistema/sistemas/procesos", importPath: "./pages/sistema/sistema/procesos", theme: true },
-  { path: "/sistema/procesos", importPath: "./pages/sistema/sistema/procesos", theme: true },
-];
+export const sistemaProcesosRoutes: AppRoute[] = createAppRoutes([
+  {
+    canonicalPath: "/sistema/sistemas/procesos",
+    importPath: "./pages/sistema/sistema/procesos",
+    legacyPaths: ["/sistema/procesos"],
+  },
+]);

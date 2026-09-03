@@ -1,11 +1,11 @@
 import React from "react";
-import { rutasApi } from "./routers";
-export { rutasApi };
+import { appRoutes } from "./routers";
+export { appRoutes };
 
-export const dynamicRoutes = rutasApi.map((ruta) => ({
-  path: ruta.path,
-  theme: ruta.theme,
+export const dynamicRoutes = appRoutes.map((route) => ({
+  path: route.path,
+  theme: route.theme,
   element: React.createElement(
-    React.lazy(() => import(/* @vite-ignore */ ruta.importPath))
+    React.lazy(() => import(/* @vite-ignore */ route.importPath))
   ),
 }));

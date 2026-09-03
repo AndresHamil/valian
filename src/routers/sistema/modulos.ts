@@ -1,6 +1,9 @@
-import type { AppRoute } from "../types";
+import { createAppRoutes, type AppRoute } from "../types";
 
-export const sistemaModulosRoutes: AppRoute[] = [
-  { path: "/sistema/sistemas/modulos", importPath: "./pages/sistema/sistema/modulos", theme: true },
-  { path: "/sistema/modulos", importPath: "./pages/sistema/sistema/modulos", theme: true },
-];
+export const sistemaModulosRoutes: AppRoute[] = createAppRoutes([
+  {
+    canonicalPath: "/sistema/sistemas/modulos",
+    importPath: "./pages/sistema/sistema/modulos",
+    legacyPaths: ["/sistema/modulos"],
+  },
+]);
