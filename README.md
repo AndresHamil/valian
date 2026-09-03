@@ -28,24 +28,45 @@ La aplicacion utiliza un contenedor visual comun para las pantallas protegidas, 
 
 ## Funcionalidades visibles en la base actual
 
-- Enrutamiento dinamico a partir de una configuracion central.
+- Enrutamiento dinamico a partir de una configuracion central con rutas canonicas y aliases de compatibilidad.
 - Layout comun para vistas internas mediante un ThemeProvider personalizado.
 - Sidebar con estructura por modulos y submodulos.
 - Persistencia del modo de tema en localStorage.
 - Vistas iniciales para secciones de inventario y sistema.
 - Redireccion basica desde login hacia una ruta principal.
 
-## Rutas configuradas actualmente
+## Conexion con API en desarrollo
+
+El proyecto usa el proxy de Vite para reenviar todas las rutas que empiezan con `/api` hacia el backend.
+
+Pasos minimos para levantarlo:
+
+1. Instala dependencias con `npm install`.
+2. Crea un archivo `.env` en la raiz del proyecto.
+3. Agrega `URL_BASE=<aqui a tu servicio de api>`.
+4. Ejecuta `npm run dev`.
+
+Si `URL_BASE` no existe o viene vacia, [vite.config.ts](vite.config.ts#L1) usa `DEFAULT_API_TARGET`, que hoy apunta a `http://localhost:3000`.
+
+## Rutas principales
 
 | Ruta | Modulo | Estado |
 | --- | --- | --- |
-| /catalogos | Inventario | Base implementada |
-| /organizacion/usuarios | Organizacion | Base implementada |
-| /organizacion/departamentos | Organizacion | Base implementada |
+| /gestion/inventario/catalogos | Inventario | Base implementada |
+| /gestion/inventario/productos | Inventario | Base implementada |
+| /gestion/inventarios/almacen | Inventarios | Base implementada |
+| /sistema/accesos/usuarios | Accesos | Base implementada |
+| /sistema/organizacion/departamentos | Organizacion | Base implementada |
 | /sistema/modulos | Sistema | Base implementada |
 | /sistema/procesos | Sistema | Base implementada |
+| /dashboard | Inicio | Implementada |
 | /login | Acceso | Implementada |
 | * | Fallback | Not Found |
+
+Nota:
+
+- Algunas rutas antiguas o cortas se mantienen como compatibilidad.
+- La referencia real para crecer el proyecto es la ruta canonica definida en `canonicalPath` dentro de `src/routers`.
 
 ## Estructura del proyecto
 
@@ -53,22 +74,35 @@ La aplicacion utiliza un contenedor visual comun para las pantallas protegidas, 
 src/
   components/
     ThemeProvider/
+      icons/
   pages/
-    independiente/
+    gestion/
       inventario/
         catalgos/
         productos/
+      inventarios/
+        almacen/
+      seguridad/
+        camaras/
     otros/
       Dashboard/
       Login/
       NotFound/
     sistema/
-      gestion/
-        departamentos/
+      accesos/
+        perfiles/
         usuarios/
+      organizacion/
+        departamentos/
+        empresas/
+        sucursales/
       sistema/
         modulos/
         procesos/
+  routers/
+    gestion/
+    otros/
+    sistema/
   main.tsx
   routes.tsx
 ```
@@ -98,10 +132,25 @@ npm run lint
 
 ## Enfoque arquitectonico
 
-- Las rutas se definen en un solo punto y se resuelven de forma dinamica.
+- Las rutas se definen en `src/routers` y se consolidan en [src/routers/index.ts](src/routers/index.ts#L1).
+- Cada archivo de rutas define un `canonicalPath` y, si hace falta, aliases de compatibilidad mediante `legacyPaths`.
+- Las rutas dinamicas se construyen desde [src/routes.tsx](src/routes.tsx#L1) usando `appRoutes`.
 - Las vistas que requieren contenedor visual comun se renderizan dentro del layout principal.
-- La estructura por carpetas separa paginas independientes, vistas generales y modulos del sistema.
+- Los iconos del sidebar se resuelven en [src/components/ThemeProvider/icons/index.tsx](src/components/ThemeProvider/icons/index.tsx#L1) mediante `iconMap`.
+- La estructura por carpetas separa vistas operativas en `gestion`, configuracion en `sistema` y vistas globales en `otros`.
 - La base actual permite extender permisos, datos remotos y componentes compartidos sin rehacer la navegacion.
+
+## Alta de modulos y procesos
+
+Para agregar un modulo o proceso nuevo, no empieces desde cero. Usa [src/plantilla/README.md](src/plantilla/README.md#L1) como guia operativa.
+
+Resumen corto:
+
+1. Crea la carpeta del proceso en `src/pages/<tipo>/<modulo>/<proceso>`.
+2. Copia la plantilla base desde `src/plantilla/test1/test2`.
+3. Registra la ruta en `src/routers/<tipo>/<modulo>.ts`.
+4. Usa `canonicalPath` como ruta real y `legacyPaths` solo si necesitas compatibilidad.
+5. Si el backend devuelve un icono nuevo, agregalo en [src/components/ThemeProvider/icons/index.tsx](src/components/ThemeProvider/icons/index.tsx#L1).
 
 ## Estado actual
 

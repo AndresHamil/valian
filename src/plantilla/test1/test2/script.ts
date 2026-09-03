@@ -2,10 +2,7 @@ import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getSessionProcessByPath } from "../../../session/auth";
 
-// Plantilla base:
-// 1. Mantiene titulo y descripcion leyendo la ruta activa desde la sesion.
-// 2. Si el proceso consulta API, agrega aqui sus hooks, estados y llamadas.
-// 3. Si cambias la profundidad de carpetas, ajusta tambien este import a session/auth.
+// Copia este archivo al proceso real y ajusta el import de session/auth segun la profundidad final.
 export function useProcessScript() {
   const navigate = useNavigate();
   const location = useLocation();

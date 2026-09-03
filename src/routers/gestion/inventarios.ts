@@ -1,5 +1,8 @@
-import type { AppRoute } from "../types";
+import { createAppRoutes, type AppRoute } from "../types";
 
-export const gestionInventariosRoutes: AppRoute[] = [
-  { path: "/gestion/inventarios/almacen", importPath: "./pages/gestion/inventarios/almacen", theme: true },
-];
+export const gestionInventariosRoutes: AppRoute[] = createAppRoutes([
+  {
+    canonicalPath: "/gestion/inventarios/almacen",
+    importPath: "./pages/gestion/inventarios/almacen",
+  },
+]);

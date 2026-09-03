@@ -4,10 +4,7 @@ import Typography from "@mui/material/Typography";
 import "./index.scss";
 import { useProcessScript } from "./script";
 
-// Plantilla base:
-// 1. Renombra la carpeta test2 por el nombre real del proceso.
-// 2. Renombra este componente segun la pantalla real.
-// 3. Sustituye el contenido base por la UI del proceso.
+// Copia este archivo al proceso real y cambia Test2Page por el nombre de tu pantalla.
 export default function Test2Page() {
   const { permiso, titulo, descripcion } = useProcessScript();
 
@@ -25,7 +22,7 @@ export default function Test2Page() {
           {descripcion}
         </Typography>
         <Typography variant="body2" className="template-process__body">
-          Contenido base del proceso.
+          Hola mundo.
         </Typography>
       </Paper>
     </Box>
